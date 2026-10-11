@@ -3,10 +3,12 @@ body {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+    overflow-x: clip;
 }
 
 .container {
     flex: 1;
+    min-width: 0;
 }
 
 /* Navbar */
@@ -23,6 +25,50 @@ body {
 
 .nav-link {
     color: #222222 !important;
+}
+
+.search-btn {
+    padding: 0 1rem !important;
+    border-radius: 25px !important;
+    background-color: #fe424d !important;
+    color: #fff !important;
+}
+
+.search-btn:hover {
+    background-color: #fe424d !important;
+    color: #fff !important;
+}
+
+.search-btn i {
+    display: inline;
+    margin-right: 0.5rem;
+}
+
+.search-input {
+    border-radius: 25px !important;
+}
+
+.navbar-toggler {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+}
+
+.navbar-toggler-icon {
+    display: inline-grid;
+    width: 1.5rem;
+    height: 1.5rem;
+    place-items: center;
+    background-image: none !important;
+}
+
+.navbar-toggler-icon::before {
+    content: "\f0c9";
+    color: #222;
+    font-family: "Font Awesome 7 Free";
+    font-weight: 900;
 }
 
 #filters {
@@ -179,6 +225,10 @@ body {
     min-height: 12rem;
     color: #6b7280;
     background-color: #f3f4f6;
+}
+
+.listing-card-image {
+    height: 20rem;
 }
 
 .card-body {
@@ -1845,5 +1895,112 @@ body {
 .password-toggle-btn:focus-visible {
     outline: 2px solid #fe424d;
     outline-offset: 1px;
+}
+
+/* Responsive refinements */
+.flash-message {
+    max-width: 42rem;
+}
+
+.listing-edit-image {
+    width: min(100%, 15.625rem);
+    max-height: 18.75rem;
+    object-fit: cover;
+}
+
+.bookings-table-wrap {
+    -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 767px) {
+    .f-info {
+        height: auto;
+        min-height: 8rem;
+        padding: 0.75rem 0;
+    }
+
+    .listing-card-image {
+        height: 16rem;
+    }
+
+    .listing-hero-description {
+        font-size: 1rem;
+    }
+
+    .owner-actions-bar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .owner-actions-bar form,
+    .owner-actions-bar .btn {
+        width: 100%;
+        margin-left: 0 !important;
+    }
+
+    .booking-details-content,
+    .booking-request-panel {
+        padding: 1.1rem;
+    }
+
+    .booking-details-image {
+        height: 14rem;
+    }
+
+    .booking-request-header {
+        flex-direction: column;
+    }
+
+    .booking-request-price {
+        align-self: flex-start;
+    }
+
+    .host-request-stay-box strong {
+        white-space: normal;
+    }
+
+    .modal .modal-footer {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .modal .modal-footer .btn {
+        width: 100%;
+        min-height: 44px;
+    }
+}
+
+@media (max-width: 575px) {
+    .bookings-page,
+    .host-requests-page {
+        padding-bottom: 2.5rem;
+    }
+
+    .bookings-page-header {
+        position: static;
+    }
+
+    .booking-date-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .listing-badge {
+        white-space: normal;
+    }
+
+    .flash-message {
+        border-radius: 0;
+    }
+
+    .booking-date-input,
+    .booking-guest-input,
+    .booking-request-panel textarea,
+    .password-field-container .form-control,
+    .host-onboard-form .form-control,
+    .host-onboard-form .form-select,
+    .needs-validation > .form-control,
+    .needs-validation > .form-select {
+        min-height: 44px;
+    }
 }
 

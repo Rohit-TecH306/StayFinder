@@ -47,7 +47,7 @@
 </div>
         </div>
 
-        <div class="row row-cols-lg-3 row-cols-md-2 row-cols-sm-1 mt-3">
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mt-3">
             <% if (!allListings.length) { %>
                 <div class="col-12"><p class="text-muted">No listings match your search.</p></div>
             <% } %>
@@ -59,8 +59,8 @@
                         <div class="card listing-card">
 
                             <% if (listing.image && listing.image.url) { %>
-                                <img src="<%= listing.image.url %>" class="card-img-top" alt="<%= listing.title %>"
-                                    loading="lazy" decoding="async" style="height: 20rem;">
+                                <img src="<%= listing.image.url %>" class="card-img-top listing-card-image" alt="<%= listing.title %>"
+                                    loading="lazy" decoding="async">
                             <% } else { %>
                                 <div class="card-img-top listing-image-fallback" role="img" aria-label="No image available for <%= listing.title %>">
                                     No image available

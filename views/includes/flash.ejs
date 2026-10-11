@@ -1,12 +1,12 @@
 <% if (success && success.length > 0) { %>
-    <div class="alert alert-success alert-dismissible fade show col-6 offset-3" role="alert">
+    <div class="alert alert-success alert-dismissible fade show mx-auto w-100 flash-message" role="alert">
         <%= success[0] %>
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 <% } %>
 
 <% if (error && error.length > 0) { %>
-    <div class="alert alert-danger alert-dismissible fade show col-6 offset-3" role="alert">
+    <div class="alert alert-danger alert-dismissible fade show mx-auto w-100 flash-message" role="alert">
         <% if (error[0] === "An account with this username or email already exists. Please log in.") { %>
             An account with this username or email already exists. <a href="/login" class="alert-link">Please log in.</a>
         <% } else { %>
