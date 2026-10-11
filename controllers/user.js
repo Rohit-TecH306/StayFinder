@@ -1,4 +1,5 @@
 const User = require("../models/user.js");
+const { isAuthenticatedSessionForUser } = require("../utils/sessionValidation.js");
 
 module.exports.signUpForm = (req, res) => {
     res.render("user/signup.ejs");
@@ -50,39 +51,46 @@ module.exports.login = async (req, res) => {
     const existingSessionId = req.user.activeSessionId;
 
     if (existingSessionId && existingSessionId !== req.sessionID) {
-        const isSessionAlive = await new Promise((resolve) => {
-            req.sessionStore.get(existingSessionId, (err, sess) => {
-                if (err || !sess) return resolve(false);
-                if (sess.cookie && sess.cookie.expires && new Date(sess.cookie.expires) <= new Date()) {
-                    return resolve(false);
-                }
-                resolve(true);
-            });
-        });
+        const isSessionAlive = await isAuthenticatedSessionForUser(
+            req.sessionStore,
+            existingSessionId,
+            req.user._id
+        );
 
         if (isSessionAlive) {
             return req.logout((err) => {
+                if (err) {
+                    return res.status(500).render("listings/error.ejs", { message: err.message });
+                }
                 req.flash("error", "This account is already logged in on another device. Please log out from that device to continue.");
                 res.redirect("/login");
             });
         }
     }
 
-    const claimed = await User.findOneAndUpdate(
-        {
-            _id: req.user._id,
+    // The filter must match the value we just inspected. This atomically replaces a
+    // stale reference, but never takes over a session claimed by another request.
+    const activeSessionMatch = existingSessionId
+        ? { activeSessionId: existingSessionId }
+        : {
             $or: [
                 { activeSessionId: null },
-                { activeSessionId: existingSessionId },
-                { activeSessionId: req.sessionID }
+                { activeSessionId: "" },
+                { activeSessionId: { $exists: false } }
             ]
-        },
+        };
+
+    const claimed = await User.findOneAndUpdate(
+        { _id: req.user._id, ...activeSessionMatch },
         { $set: { activeSessionId: req.sessionID } },
         { new: true }
     );
 
     if (!claimed) {
         return req.logout((err) => {
+            if (err) {
+                return res.status(500).render("listings/error.ejs", { message: err.message });
+            }
             req.flash("error", "This account is already logged in on another device. Please log out from that device to continue.");
             res.redirect("/login");
         });
