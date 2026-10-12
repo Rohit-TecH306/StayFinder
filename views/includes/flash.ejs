@@ -9,10 +9,11 @@
     <div class="alert alert-danger alert-dismissible fade show mx-auto w-100 flash-message" role="alert">
         <% if (error[0] === "An account with this username or email already exists. Please log in.") { %>
             An account with this username or email already exists. <a href="/login" class="alert-link">Please log in.</a>
+        <% } else if (error[0] === "An account with this email already exists. Please log in.") { %>
+            An account with this email already exists. <a href="/login" class="alert-link">Please log in.</a>
         <% } else { %>
             <%= error[0] %>
         <% } %>
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 <% } %>
-
