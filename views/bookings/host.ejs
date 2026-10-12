@@ -2,6 +2,9 @@
 
 <main class="host-requests-page">
     <div class="host-requests-shell">
+        <div class="mb-3">
+            <%- include("../includes/backButton.ejs", { fallback: "/profile", label: "Back to Profile" }) %>
+        </div>
         <header class="host-requests-header">
             <h1>Hosting Requests</h1>
             <p>Review and respond to booking requests for your listings.</p>

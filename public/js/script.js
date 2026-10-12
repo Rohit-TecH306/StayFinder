@@ -97,4 +97,23 @@ document.addEventListener("click", function (event) {
     toggleBtn.setAttribute("aria-label", isPassword ? "Hide password" : "Show password");
 });
 
+// Back links always have a local fallback. Use history only when the browser
+// actually came from another page on this site, so direct visits never leave
+// the application or get trapped in a redirect loop.
+document.addEventListener("click", function (event) {
+    const backLink = event.target.closest("[data-site-back]");
+    if (!backLink || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+
+    try {
+        const referrer = document.referrer ? new URL(document.referrer) : null;
+        const current = new URL(window.location.href);
+        if (referrer && referrer.origin === current.origin && referrer.href !== current.href && window.history.length > 1) {
+            event.preventDefault();
+            window.history.back();
+        }
+    } catch (_) {
+        // Keep the server-rendered fallback when referrer parsing is unavailable.
+    }
+});
+
 

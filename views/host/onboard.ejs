@@ -1,6 +1,9 @@
 <% layout("/layouts/boilerplate") %>
 
 <main class="host-onboard-page">
+    <div class="mb-3">
+        <%- include("../includes/backButton.ejs", { fallback: "/listings", label: "Back to listings" }) %>
+    </div>
     <section class="host-onboard-hero">
         <p class="host-onboard-kicker">Start hosting</p>
         <h1>Become a Host</h1>

@@ -24,7 +24,7 @@
 
 <main class="bookings-page">
     <div class="bookings-page-shell booking-details-shell">
-        <a href="/bookings" class="booking-back-link"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i><span>Back to My Bookings</span></a>
+        <%- include("../includes/backButton.ejs", { fallback: "/bookings", label: "Back to My Bookings" }) %>
         <header class="bookings-page-header booking-details-header">
             <h1>Booking Details</h1>
             <p>Review the information for your booking request.</p>
