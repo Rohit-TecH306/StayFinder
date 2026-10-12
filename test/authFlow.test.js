@@ -251,13 +251,13 @@ async function runTests() {
         assert.match(flashMsg, /username already exists/i, "Duplicate username rejected");
     }
 
-    // Test 9b: Profile editing validates trimmed required fields and email format
+    // Test 9b: Profile editing rejects whitespace-only usernames
     {
         let flashMsg = null;
         let redirectedTo = null;
         const req = {
             user: { _id: "myUser123", username: "currentName", email: "current@example.com" },
-            body: { username: "   ", email: "not-an-email" },
+            body: { username: "   " },
             flash(type, msg) { flashMsg = msg; }
         };
         const res = { redirect(url) { redirectedTo = url; } };
@@ -266,37 +266,40 @@ async function runTests() {
         assert.equal(redirectedTo, "/profile/edit");
         assert.match(flashMsg, /username/i, "Whitespace-only username rejected");
 
-        req.body = { username: "validName", email: "not-an-email" };
-        await userController.updateProfile(req, res, () => {});
-        assert.match(flashMsg, /valid email/i, "Invalid email rejected server-side");
     }
 
-    // Test 10: Profile editing rejects duplicate email from another user
+    // Test 10: Submitted email is ignored because email is read-only
     {
         const originalFindOne = User.findOne;
-        User.findOne = async (query) => {
-            if (query.email === "taken@example.com") {
-                return { _id: "otherUser456", email: "taken@example.com" };
-            }
-            return null;
+        const originalFindById = User.findById;
+        const originalUpdateOne = User.updateOne;
+        User.findOne = async () => null;
+        const fakeDoc = {
+            _id: "myUser123",
+            username: "oldName",
+            email: "current@example.com",
+            save: async function () {}
         };
+        User.findById = async () => fakeDoc;
+        User.updateOne = async () => ({ matchedCount: 1 });
 
-        let flashMsg = null;
         let redirectedTo = null;
         const req = {
-            user: { _id: "myUser123", username: "currentName", email: "current@example.com" },
-            body: { username: "currentName", email: "taken@example.com" },
-            flash(type, msg) { flashMsg = msg; }
+            user: { _id: "myUser123", username: "oldName", email: "current@example.com" },
+            body: { username: "newName", email: "attacker@example.com" },
+            sessionID: "existing-session",
+            login(user, cb) { this.sessionID = "new-session"; cb(); },
+            flash() {}
         };
-        const res = {
-            redirect(url) { redirectedTo = url; }
-        };
+        const res = { redirect(url) { redirectedTo = url; } };
 
         await userController.updateProfile(req, res, () => {});
         User.findOne = originalFindOne;
+        User.findById = originalFindById;
+        User.updateOne = originalUpdateOne;
 
-        assert.equal(redirectedTo, "/profile/edit");
-        assert.match(flashMsg, /email already exists/i, "Duplicate email rejected");
+        assert.equal(fakeDoc.email, "current@example.com", "Email remains unchanged");
+        assert.equal(redirectedTo, "/profile");
     }
 
     // Test 11: Profile editing successfully updates username and re-authenticates session
@@ -345,7 +348,7 @@ async function runTests() {
         User.updateOne = originalUpdateOne;
 
         assert.equal(fakeDoc.username, "newName");
-        assert.equal(fakeDoc.email, "new@example.com");
+        assert.equal(fakeDoc.email, "old@example.com", "Username edit does not change email");
         assert.equal(reLoggedInUser, fakeDoc, "Session re-serialized with updated username");
         assert.equal(syncedSession.filter.activeSessionId, "original-session-123", "Sync is conditional on the prior active session");
         assert.equal(syncedSession.update.$set.activeSessionId, "regenerated-session-123", "Database stores Passport's final session ID");

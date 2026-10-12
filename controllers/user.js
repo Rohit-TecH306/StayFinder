@@ -2,17 +2,12 @@ const User = require("../models/user.js");
 const { isAuthenticatedSessionForUser } = require("../utils/sessionValidation.js");
 const { userIsHost } = require("../middleware.js");
 
-const isValidProfileInput = (username, email) => {
+const isValidProfileInput = (username) => {
     if (!username) {
         return "Username cannot be empty.";
     }
-
     // The application has historically accepted usernames with spaces, so this
     // deliberately avoids imposing a new character policy on existing users.
-    if (!email || email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        return "Enter a valid email address.";
-    }
-
     return null;
 };
 
@@ -47,9 +42,9 @@ const reloginAndSyncActiveSession = (req, user, done) => {
     });
 };
 
-const preserveProfileInput = (req, username, email) => {
+const preserveProfileInput = (req, username) => {
     if (req.session) {
-        req.session.profileData = { username, email };
+        req.session.profileData = { username };
     }
 };
 
@@ -212,26 +207,24 @@ module.exports.editProfileForm = async (req, res) => {
             ...user.toObject ? user.toObject() : user,
             username: profileData && Object.prototype.hasOwnProperty.call(profileData, "username")
                 ? profileData.username : user.username,
-            email: profileData && Object.prototype.hasOwnProperty.call(profileData, "email")
-                ? profileData.email : user.email
+            email: user.email
         },
         isHost
     });
 }
 
 module.exports.updateProfile = async (req, res, next) => {
-    let { username, email } = req.body;
+    let { username } = req.body;
     username = username ? username.trim() : "";
-    email = email ? email.trim().toLowerCase() : "";
 
-    const inputError = isValidProfileInput(username, email);
+    const inputError = isValidProfileInput(username);
     if (inputError) {
-        preserveProfileInput(req, username, email);
+        preserveProfileInput(req, username);
         req.flash("error", inputError);
         return res.redirect("/profile/edit");
     }
 
-    if (username === req.user.username && email === req.user.email) {
+    if (username === req.user.username) {
         req.flash("success", "Profile is already up to date.");
         return res.redirect("/profile");
     }
@@ -243,20 +236,8 @@ module.exports.updateProfile = async (req, res, next) => {
                 _id: { $ne: req.user._id }
             });
             if (existingUserByUsername) {
-                preserveProfileInput(req, username, email);
+                preserveProfileInput(req, username);
                 req.flash("error", "An account with this username already exists. Please choose a different username.");
-                return res.redirect("/profile/edit");
-            }
-        }
-
-        if (email !== req.user.email) {
-            const existingUserByEmail = await User.findOne({
-                email,
-                _id: { $ne: req.user._id }
-            });
-            if (existingUserByEmail) {
-                preserveProfileInput(req, username, email);
-                req.flash("error", "An account with this email already exists. Please use a different email address.");
                 return res.redirect("/profile/edit");
             }
         }
@@ -269,7 +250,6 @@ module.exports.updateProfile = async (req, res, next) => {
 
         const usernameChanged = user.username !== username;
         user.username = username;
-        user.email = email;
         await user.save();
 
         if (usernameChanged) {
@@ -288,22 +268,13 @@ module.exports.updateProfile = async (req, res, next) => {
         res.redirect("/profile");
     } catch (err) {
         if (err.name === "UserExistsError") {
-            preserveProfileInput(req, username, email);
+            preserveProfileInput(req, username);
             req.flash("error", "An account with this username already exists. Please choose a different username.");
         } else if (err.code === 11000) {
-            preserveProfileInput(req, username, email);
-            const isEmail = Boolean(
-                (err.keyPattern && err.keyPattern.email) ||
-                (err.keyValue && err.keyValue.email) ||
-                (err.message && err.message.includes("email"))
-            );
-            if (isEmail) {
-                req.flash("error", "An account with this email already exists. Please use a different email address.");
-            } else {
-                req.flash("error", "An account with this username already exists. Please choose a different username.");
-            }
+            preserveProfileInput(req, username);
+            req.flash("error", "An account with this username already exists. Please choose a different username.");
         } else {
-            preserveProfileInput(req, username, email);
+            preserveProfileInput(req, username);
             console.error("Profile update failed.");
             req.flash("error", "We could not update your profile. Please try again.");
         }

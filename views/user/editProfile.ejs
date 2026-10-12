@@ -26,8 +26,8 @@
                     </div>
                     <div class="mb-4">
                         <label for="email" class="form-label fw-bold">Email Address</label>
-                        <input type="email" name="email" id="email" class="form-control" value="<%= user.email %>" maxlength="254" required autocomplete="email">
-                        <div class="invalid-feedback">Please enter a valid email address.</div>
+                        <input type="email" id="email" class="form-control" value="<%= user.email %>" readonly aria-describedby="emailHelp">
+                        <div id="emailHelp" class="form-text">Email changes are managed by account support.</div>
                     </div>
                     <button type="submit" class="btn btn-danger rounded-pill px-4">Save Changes</button>
                     <a href="/profile" class="btn btn-outline-secondary rounded-pill px-4 ms-2">Cancel</a>
