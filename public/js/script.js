@@ -13,12 +13,65 @@
         if (!form.checkValidity()) {
           event.preventDefault()
           event.stopPropagation()
+          const firstInvalid = form.querySelector(':invalid')
+          if (firstInvalid) {
+            firstInvalid.focus({ preventScroll: true })
+            firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          }
         }
 
         form.classList.add('was-validated')
       }, false)
     })
 })()
+
+// The two image controls submit the same field. Clear the alternate control so
+// Multer receives exactly one image while offering distinct camera and browse actions.
+const listingImageInputs = document.querySelectorAll("[data-listing-image-input]");
+const imageSelectionMessage = document.querySelector("[data-image-selection-message]");
+
+listingImageInputs.forEach(function (input) {
+  input.addEventListener("change", function () {
+    if (!input.files || input.files.length === 0) return;
+
+    listingImageInputs.forEach(function (otherInput) {
+      if (otherInput !== input) otherInput.value = "";
+    });
+
+    if (imageSelectionMessage) {
+      imageSelectionMessage.textContent = `Selected: ${input.files[0].name}`;
+    }
+  });
+});
+
+const searchForm = document.querySelector("[data-search-form]");
+
+if (searchForm) {
+  const searchInput = searchForm.querySelector("[name='q']");
+  const searchFeedback = searchForm.querySelector(".search-feedback");
+
+  searchForm.addEventListener("submit", function (event) {
+    const searchTerm = searchInput.value.trim();
+    if (searchTerm) {
+      searchInput.value = searchTerm;
+      searchInput.removeAttribute("aria-invalid");
+      if (searchFeedback) searchFeedback.textContent = "";
+      return;
+    }
+
+    event.preventDefault();
+    searchInput.setAttribute("aria-invalid", "true");
+    if (searchFeedback) searchFeedback.textContent = "Enter a destination to search.";
+    searchInput.focus();
+  });
+
+  searchInput.addEventListener("input", function () {
+    if (searchInput.value.trim()) {
+      searchInput.removeAttribute("aria-invalid");
+      if (searchFeedback) searchFeedback.textContent = "";
+    }
+  });
+}
 
 const mapElement = document.querySelector("#map");
 

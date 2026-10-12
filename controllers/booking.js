@@ -20,16 +20,15 @@ const parsePreviewDate = (value) => {
 };
 
 module.exports.previewBooking = async (req, res) => {
-  const { checkIn: checkInValue, checkOut: checkOutValue, guests: guestsValue } = req.query;
+  const { checkIn: checkInValue, checkOut: checkOutValue } = req.query;
   const checkIn = parsePreviewDate(checkInValue);
   const checkOut = parsePreviewDate(checkOutValue);
-  const guests = Number(guestsValue);
 
-  if (!checkIn || !checkOut || !Number.isInteger(guests) || guests < 1) {
-    return res.status(400).json({ message: "Choose valid dates and guest count." });
+  if (!checkIn || !checkOut) {
+    return res.status(400).json({ message: "Choose valid check-in and check-out dates." });
   }
 
-  const listing = await Listing.findById(req.params.id).select("owner maxGuests price").lean();
+  const listing = await Listing.findById(req.params.id).select("owner price").lean();
   if (!listing) {
     return res.status(404).json({ message: "Listing not found." });
   }
@@ -40,11 +39,6 @@ module.exports.previewBooking = async (req, res) => {
 
   if (checkIn < startOfTodayUtc()) {
     return res.status(400).json({ message: "Check-in date cannot be in the past." });
-  }
-
-  const maxGuests = listing.maxGuests || 1;
-  if (guests > maxGuests) {
-    return res.status(400).json({ message: `This listing allows a maximum of ${maxGuests} guests.` });
   }
 
   const nights = (checkOut.getTime() - checkIn.getTime()) / DAY_IN_MILLISECONDS;
@@ -88,14 +82,9 @@ module.exports.createBooking = async (req, res) => {
     throw new ExpressError(403, "You cannot book your own listing.");
   }
 
-  const { checkIn, checkOut, guests, guestMessage } = req.validatedBooking;
+  const { checkIn, checkOut, guestMessage } = req.validatedBooking;
   if (checkIn < startOfTodayUtc()) {
     throw new ExpressError(400, "Check-in date cannot be in the past.");
-  }
-
-  const maxGuests = listing.maxGuests || 1;
-  if (guests > maxGuests) {
-    throw new ExpressError(400, `This listing allows a maximum of ${maxGuests} guests.`);
   }
 
   const nights = (checkOut.getTime() - checkIn.getTime()) / DAY_IN_MILLISECONDS;
@@ -129,7 +118,6 @@ module.exports.createBooking = async (req, res) => {
     guest: req.user._id,
     checkIn,
     checkOut,
-    guests,
     nights,
     pricePerNightPaise,
     totalAmountPaise,
@@ -237,9 +225,14 @@ module.exports.updateBookingStatus = async (req, res) => {
     }
   }
 
-  booking.status = newStatus;
-  booking.statusUpdatedAt = new Date();
-  await booking.save();
+  const updatedBooking = await Booking.findOneAndUpdate(
+    { _id: booking._id, status: "pending" },
+    { $set: { status: newStatus, statusUpdatedAt: new Date() } },
+    { new: true, runValidators: true }
+  );
+  if (!updatedBooking) {
+    throw new ExpressError(409, "This booking request was already updated. Refresh the page to see its current status.");
+  }
 
   req.flash("success", `Booking request ${newStatus}.`);
   res.redirect("/host/bookings");

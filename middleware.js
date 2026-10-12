@@ -2,6 +2,20 @@ const Listing = require("./models/listing");
 const { listingSchema, ReviewSchema, bookingSchema, bookingStatusSchema, hostOnboardingSchema } = require("./schema.js");
 const ExpressError = require("./utils/ExpressError.js");
 const Review = require("./models/review.js");
+const { cloudinary } = require("./cloudConfig.js");
+
+const validationMessage = (error) => error.details
+  .map((detail) => `${detail.path.join(".") || "Form"}: ${detail.message.replace(/^\"|\"$/g, "")}`)
+  .join("; ");
+
+const cleanupUploadedFile = async (file) => {
+  if (!file || !file.filename) return;
+  try {
+    await cloudinary.uploader.destroy(file.filename);
+  } catch (_) {
+    console.error("Uploaded image cleanup failed.");
+  }
+};
 
 const isLoggedIn = (req, res, next) => {
   if (!req.isAuthenticated()) {
@@ -30,11 +44,13 @@ const isOwner = async (req,res,next)=>{
       next();
 }
 
-const validateListing = (req, res, next) => {
+const validateListing = async (req, res, next) => {
     let { error, value } = listingSchema.validate(req.body || {}, { abortEarly: false });
     if (error) {
-        let errMsg = error.details.map((el) => el.message).join(",");
-        throw new ExpressError(400, errMsg);
+        if (req.session) req.session.listingFormData = { ...req.body };
+        await cleanupUploadedFile(req.file);
+        req.flash("error", validationMessage(error));
+        return res.redirect(req.params.id ? `/listings/${req.params.id}/edit` : "/listings/new");
     }
     req.validatedListing = value;
     next();
@@ -76,8 +92,9 @@ const validateBookingStatus = (req, res, next) => {
 const validateHostOnboarding = (req, res, next) => {
   const { error, value } = hostOnboardingSchema.validate(req.body || {}, { abortEarly: false });
   if (error) {
-    const errMsg = error.details.map((el) => el.message).join(", ");
-    throw new ExpressError(400, errMsg);
+    if (req.session) req.session.hostFormData = { ...(req.body.host || {}) };
+    req.flash("error", validationMessage(error));
+    return res.redirect("/become-a-host");
   }
 
   req.validatedHostOnboarding = value.host;

@@ -10,11 +10,12 @@
                 <a class="nav-link" href="/listings">Explore</a>
             </div>
             <div class="navbar-nav ms-auto">
-                <form class="d-flex search-form" role="search" action="/listings" method="get">
-                    <input class="form-control me-2 search-input" name="q" value="<%= typeof q !== 'undefined' ? q : '' %>" type="search" placeholder="Search destinations" aria-label="Search destinations">
+                <form class="d-flex search-form" role="search" action="/listings" method="get" data-search-form>
+                    <input class="form-control me-2 search-input" name="q" value="<%= typeof q !== 'undefined' ? q : '' %>" type="search" placeholder="Search destinations" aria-label="Search destinations" aria-describedby="search-feedback">
                     <button class="btn search-btn" type="submit">
                         <i class="fa-solid fa-magnifying-glass"></i>Search
                     </button>
+                    <span id="search-feedback" class="search-feedback" role="status" aria-live="polite"></span>
                 </form>
             </div>
             <div class="navbar-nav ms-auto align-items-lg-center">

@@ -1,14 +1,14 @@
 // Server Side Validation for Listing Schema :-
 const Joi = require("joi");
+const { listingCategoryValues } = require("./utils/listingCategories.js");
 
 module.exports.listingSchema = Joi.object({
     title: Joi.string().trim().min(3).max(100).required(),
     description: Joi.string().trim().min(10).max(2000).required(),
     price: Joi.number().min(0).required(),
-    maxGuests: Joi.number().integer().min(1).max(50).required(),
     location: Joi.string().trim().min(2).max(100).required(),
     country: Joi.string().trim().min(2).max(100).required(),
-    category: Joi.string().valid("Trending", "Rooms", "Iconic Cities", "Mountains", "Castles", "Campings", "Farms", "Arctic", "Boats").required()
+    category: Joi.string().valid(...listingCategoryValues).required()
 }).required().unknown(false).messages({
     "any.required": "Listing data is required"
 });;
@@ -28,7 +28,6 @@ module.exports.bookingSchema = Joi.object({
     booking: Joi.object({
         checkIn: Joi.date().iso().required(),
         checkOut: Joi.date().iso().greater(Joi.ref("checkIn")).required(),
-        guests: Joi.number().integer().min(1).max(50).required(),
         guestMessage: Joi.string().trim().max(500).allow("").optional()
     }).required().unknown(false)
 }).required().unknown(false);
@@ -42,8 +41,14 @@ module.exports.bookingStatusSchema = Joi.object({
 module.exports.hostOnboardingSchema = Joi.object({
     host: Joi.object({
         fullName: Joi.string().trim().min(2).max(80).required(),
-        phone: Joi.string().trim().pattern(/^[0-9+\-\s()]{8,20}$/).required()
-            .messages({ "string.pattern.base": "Enter a valid phone number." }),
+        phone: Joi.string().trim().custom((value, helpers) => {
+            const normalized = value.replace(/[\s-]/g, "");
+            if (!/^(?:\+91)?[6-9]\d{9}$/.test(normalized)) {
+                return helpers.error("any.invalid");
+            }
+            return normalized;
+        }).required()
+            .messages({ "any.invalid": "Enter a valid 10-digit Indian mobile number (or +91 followed by 10 digits)." }),
         city: Joi.string().trim().min(2).max(100).required(),
         propertyType: Joi.string().valid("entire_place", "private_room", "shared_room", "other").required(),
         termsAccepted: Joi.boolean().truthy("true", "on").valid(true).required()

@@ -26,7 +26,7 @@
             <article class="host-onboard-benefit">
                 <i class="fa-solid fa-calendar-check" aria-hidden="true"></i>
                 <h3>Manage booking requests</h3>
-                <p>Review dates, guest counts, and messages, then confirm or decline with confidence.</p>
+                <p>Review dates and messages, then confirm or decline with confidence.</p>
             </article>
             <article class="host-onboard-benefit">
                 <i class="fa-solid fa-sliders" aria-hidden="true"></i>
@@ -71,19 +71,19 @@
         <form method="POST" action="/become-a-host" class="needs-validation host-onboard-form" novalidate>
             <div class="mb-3">
                 <label for="hostFullName" class="form-label booking-field-label">Full name</label>
-                <input type="text" name="host[fullName]" id="hostFullName" class="form-control booking-date-input" minlength="2" maxlength="80" required autocomplete="name">
+                <input type="text" name="host[fullName]" id="hostFullName" value="<%= formData.fullName || '' %>" class="form-control booking-date-input" minlength="2" maxlength="80" required autocomplete="name">
                 <div class="invalid-feedback">Please enter your full name.</div>
             </div>
 
             <div class="row">
                 <div class="mb-3 col-md-6">
                     <label for="hostPhone" class="form-label booking-field-label">Phone number</label>
-                    <input type="tel" name="host[phone]" id="hostPhone" class="form-control booking-date-input" pattern="[0-9+\-\s()]{8,20}" required autocomplete="tel">
+                    <input type="tel" name="host[phone]" id="hostPhone" value="<%= formData.phone || '' %>" pattern="(?:\+91[\s-]?)?[6-9][0-9]{9}" class="form-control booking-date-input" required autocomplete="tel">
                     <div class="invalid-feedback">Enter a valid phone number.</div>
                 </div>
                 <div class="mb-3 col-md-6">
                     <label for="hostCity" class="form-label booking-field-label">City / location</label>
-                    <input type="text" name="host[city]" id="hostCity" class="form-control booking-date-input" minlength="2" maxlength="100" required autocomplete="address-level2">
+                    <input type="text" name="host[city]" id="hostCity" value="<%= formData.city || '' %>" class="form-control booking-date-input" minlength="2" maxlength="100" required autocomplete="address-level2">
                     <div class="invalid-feedback">Please enter your city or location.</div>
                 </div>
             </div>
@@ -92,28 +92,28 @@
                 <legend class="booking-field-label mb-2">What do you plan to host?</legend>
                 <div class="host-property-options">
                     <label class="host-property-option">
-                        <input type="radio" name="host[propertyType]" value="entire_place" required>
+                        <input type="radio" name="host[propertyType]" value="entire_place" <%= formData.propertyType === 'entire_place' ? 'checked' : '' %> required>
                         <span>
                             <strong>Entire place</strong>
                             <small>Guests have the whole space to themselves.</small>
                         </span>
                     </label>
                     <label class="host-property-option">
-                        <input type="radio" name="host[propertyType]" value="private_room">
+                        <input type="radio" name="host[propertyType]" value="private_room" <%= formData.propertyType === 'private_room' ? 'checked' : '' %>>
                         <span>
                             <strong>Private room</strong>
                             <small>A private bedroom with shared common areas.</small>
                         </span>
                     </label>
                     <label class="host-property-option">
-                        <input type="radio" name="host[propertyType]" value="shared_room">
+                        <input type="radio" name="host[propertyType]" value="shared_room" <%= formData.propertyType === 'shared_room' ? 'checked' : '' %>>
                         <span>
                             <strong>Shared room</strong>
                             <small>Guests share a room or space with others.</small>
                         </span>
                     </label>
                     <label class="host-property-option">
-                        <input type="radio" name="host[propertyType]" value="other">
+                        <input type="radio" name="host[propertyType]" value="other" <%= formData.propertyType === 'other' ? 'checked' : '' %>>
                         <span>
                             <strong>Other</strong>
                             <small>A unique stay that does not fit the options above.</small>

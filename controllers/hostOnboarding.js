@@ -6,7 +6,9 @@ module.exports.renderOnboarding = async (req, res) => {
     return res.redirect("/listings/new");
   }
 
-  res.render("host/onboard.ejs");
+  const formData = req.session && req.session.hostFormData;
+  if (req.session) delete req.session.hostFormData;
+  res.render("host/onboard.ejs", { formData: formData || {} });
 };
 
 module.exports.completeOnboarding = async (req, res) => {

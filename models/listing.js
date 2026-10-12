@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const Review = require("./review.js");
+const { listingCategoryValues } = require("../utils/listingCategories.js");
 
 const schema = mongoose.Schema;
 
@@ -16,7 +17,8 @@ const listingSchema = new schema({
     price: Number,
     maxGuests: {
         type: Number,
-        required: true,
+        // Retained for legacy listings; capacity is no longer part of the active workflow.
+        required: false,
         default: 1,
         min: 1,
         max: 50,
@@ -29,8 +31,8 @@ const listingSchema = new schema({
     country: String,
     category: {
         type: String,
-        enum: ["Trending", "Rooms", "Iconic Cities", "Mountains", "Castles", "Campings", "Farms", "Arctic", "Boats"],
-        default: "Trending"
+        enum: listingCategoryValues,
+        default: "Iconic Cities"
     },
     geometry: {
         type: {

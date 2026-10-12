@@ -2,42 +2,12 @@
 
     <body>
         <div id="filters">
-            <a class="filter <%= selectedCategory === 'Trending' ? 'active' : '' %>" href="/listings?category=Trending">
-                <div><i class="fa-solid fa-fire"></i></div>
-                <p>Trending</p>
-            </a>
-            <a class="filter <%= selectedCategory === 'Rooms' ? 'active' : '' %>" href="/listings?category=Rooms">
-                <div><i class="fa-solid fa-bed"></i></div>
-                <p>Rooms</p>
-            </a>
-             <a class="filter <%= selectedCategory === 'Iconic Cities' ? 'active' : '' %>" href="/listings?category=Iconic%20Cities">
-                <div><i class="fa-solid fa-mountain-city"></i></div>
-                <p>Iconic Cities</p>
-            </a>
-             <a class="filter <%= selectedCategory === 'Mountains' ? 'active' : '' %>" href="/listings?category=Mountains">
-                <div><i class="fa-solid fa-mountain"></i></div>
-                <p>Mountains</p>
-            </a>
-            <a class="filter <%= selectedCategory === 'Castles' ? 'active' : '' %>" href="/listings?category=Castles">
-                <div><i class="fa-brands fa-fort-awesome"></i></div>
-                <p>Castles</p>
-            </a>
-            <a class="filter <%= selectedCategory === 'Campings' ? 'active' : '' %>" href="/listings?category=Campings">
-                <div><i class="fa-solid fa-campground"></i></div>
-                <p>Campings</p>
-            </a>
-            <a class="filter <%= selectedCategory === 'Farms' ? 'active' : '' %>" href="/listings?category=Farms">
-                <div><i class="fa-solid fa-seedling"></i></div>
-                <p>Farms</p>
-            </a>
-            <a class="filter <%= selectedCategory === 'Arctic' ? 'active' : '' %>" href="/listings?category=Arctic">
-                <div><i class="fa-solid fa-snowflake"></i></div>
-                <p>Arctic</p>
-            </a>
-             <a class="filter <%= selectedCategory === 'Boats' ? 'active' : '' %>" href="/listings?category=Boats">
-                <div><i class="fa-solid fa-ship"></i></div>
-                <p>Boats</p>
-            </a>
+            <% listingCategories.forEach(category => { %>
+                <a class="filter <%= selectedCategory === category.value ? 'active' : '' %>" href="/listings?category=<%= encodeURIComponent(category.value) %>">
+                    <div><i class="fa-solid <%= category.icon %>"></i></div>
+                    <p><%= category.label %></p>
+                </a>
+            <% }) %>
              
 <div class="tax-toggle">
     <div class="form-check-reverse form-switch">

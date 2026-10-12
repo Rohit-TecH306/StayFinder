@@ -1,11 +1,32 @@
 const Listing = require("../models/listing.js");
+const { cloudinary } = require("../cloudConfig.js");
+const { activeListingCategories } = require("../utils/listingCategories.js");
+
+const destroyImage = async (filename) => {
+    if (!filename) return;
+    try {
+        await cloudinary.uploader.destroy(filename);
+    } catch (_) {
+        console.error("Cloudinary image cleanup failed.");
+    }
+};
+
+const destroyIfUnreferenced = async (filename, listingId) => {
+    if (!filename) return;
+    const stillReferenced = await Listing.exists({
+        "image.filename": filename,
+        _id: { $ne: listingId }
+    });
+    if (!stillReferenced) await destroyImage(filename);
+};
 
 module.exports.index = async (req, res) => {
     const { q, category } = req.query;
+    const normalizedQuery = typeof q === "string" ? q.trim() : "";
     const filters = {};
 
-    if (q && q.trim()) {
-        filters.$text = { $search: q.trim() };
+    if (normalizedQuery) {
+        filters.$text = { $search: normalizedQuery };
     }
 
     if (category) {
@@ -16,53 +37,65 @@ module.exports.index = async (req, res) => {
         .select("title price image location country category")
         .lean();
 
-    res.render("listings/index.ejs", { allListings, q: q || "", selectedCategory: category || "" });
+    res.render("listings/index.ejs", {
+        allListings,
+        q: normalizedQuery,
+        selectedCategory: category || "",
+        listingCategories: activeListingCategories,
+    });
 }
 
 module.exports.renderNewForm = (req, res) => {
-    res.render("listings/new.ejs");
+    const formData = req.session && req.session.listingFormData;
+    if (req.session) delete req.session.listingFormData;
+    res.render("listings/new.ejs", { formData: formData || {}, listingCategories: activeListingCategories });
 }
 
 module.exports.createListing = async (req, res, next) => {
     if (!req.file) {
+        if (req.session) req.session.listingFormData = { ...req.body };
         req.flash("error", "Please upload an image before creating the listing.");
         return res.redirect("/listings/new");
     }
 
-    const { location, country } = req.validatedListing;
-    const searchQuery = encodeURIComponent(`${location}, ${country}`);
-    const geocodingResponse = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${searchQuery}`,
-        {
-            headers: {
-                "User-Agent": "WanderlustStudentProject/1.0"
-            }
+    try {
+        const { location, country } = req.validatedListing;
+        const searchQuery = encodeURIComponent(`${location}, ${country}`);
+        const geocodingResponse = await fetch(
+            `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${searchQuery}`,
+            { headers: { "User-Agent": "WanderlustStudentProject/1.0" } }
+        );
+
+        if (!geocodingResponse.ok) {
+            const error = new Error("Location service is currently unavailable. Please try again.");
+            error.statusCode = 503;
+            throw error;
         }
-    );
 
-    if (!geocodingResponse.ok) {
-        const error = new Error("Location service is currently unavailable. Please try again.");
-        error.statusCode = 503;
+        const locations = await geocodingResponse.json();
+        if (!locations.length) {
+            const error = new Error("Location could not be found. Please enter a valid location and country.");
+            error.statusCode = 400;
+            throw error;
+        }
+
+        const newListing = new Listing(req.validatedListing);
+        newListing.owner = req.user._id;
+        newListing.image = { url: req.file.path, filename: req.file.filename };
+        newListing.geometry = {
+            type: "Point",
+            coordinates: [Number(locations[0].lon), Number(locations[0].lat)]
+        };
+        await newListing.save();
+    } catch (error) {
+        await destroyImage(req.file.filename);
+        if (error.statusCode && req.session) {
+            req.session.listingFormData = { ...req.validatedListing };
+            req.flash("error", error.message);
+            return res.redirect("/listings/new");
+        }
         throw error;
     }
-
-    const locations = await geocodingResponse.json();
-    if (!locations.length) {
-        const error = new Error("Location could not be found. Please enter a valid location and country.");
-        error.statusCode = 400;
-        throw error;
-    }
-
-    let url = req.file.path;
-    let filename = req.file.filename;
-    const newListing = new Listing(req.validatedListing);
-    newListing.owner = req.user._id;
-    newListing.image = { url, filename };
-    newListing.geometry = {
-        type: "Point",
-        coordinates: [Number(locations[0].lon), Number(locations[0].lat)]
-    };
-    await newListing.save();
     req.flash("success", "New Listing Added!");
     res.redirect("/listings");
 }
@@ -101,7 +134,14 @@ module.exports.editListingForm = async (req, res) => {
     }
     let originalUrl = listing.image.url;
 originalUrl = originalUrl.replace("/upload/", "/upload/c_fill,h_300,w_250/");
-    res.render("listings/edit.ejs", { listing,originalUrl });
+    const formData = req.session && req.session.listingFormData;
+    if (req.session) delete req.session.listingFormData;
+    res.render("listings/edit.ejs", {
+        listing,
+        originalUrl,
+        formData: formData || {},
+        listingCategories: activeListingCategories,
+    });
 }
 
 module.exports.updateListing = async (req, res) => {
@@ -113,51 +153,54 @@ module.exports.updateListing = async (req, res) => {
         return res.redirect("/listings");
     }
 
-    const { location, country } = req.validatedListing;
-    const locationChanged =
-        listing.location !== location ||
-        listing.country !== country;
+    const previousFilename = listing.image && listing.image.filename;
+    const replacementFilename = req.file && req.file.filename;
+    try {
+        const { location, country } = req.validatedListing;
+        const locationChanged = listing.location !== location || listing.country !== country;
 
-    if (locationChanged) {
-        const searchQuery = encodeURIComponent(`${location}, ${country}`);
-        const geocodingResponse = await fetch(
-            `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${searchQuery}`,
-            {
-                headers: {
-                    "User-Agent": "WanderlustStudentProject/1.0"
-                }
+        if (locationChanged) {
+            const searchQuery = encodeURIComponent(`${location}, ${country}`);
+            const geocodingResponse = await fetch(
+                `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${searchQuery}`,
+                { headers: { "User-Agent": "WanderlustStudentProject/1.0" } }
+            );
+
+            if (!geocodingResponse.ok) {
+                const error = new Error("Location service is currently unavailable. Please try again.");
+                error.statusCode = 503;
+                throw error;
             }
-        );
 
-        if (!geocodingResponse.ok) {
-            const error = new Error("Location service is currently unavailable. Please try again.");
-            error.statusCode = 503;
-            throw error;
+            const locations = await geocodingResponse.json();
+            if (!locations.length) {
+                const error = new Error("Location could not be found. Please enter a valid location and country.");
+                error.statusCode = 400;
+                throw error;
+            }
+
+            listing.geometry = {
+                type: "Point",
+                coordinates: [Number(locations[0].lon), Number(locations[0].lat)]
+            };
         }
 
-        const locations = await geocodingResponse.json();
-        if (!locations.length) {
-            const error = new Error("Location could not be found. Please enter a valid location and country.");
-            error.statusCode = 400;
-            throw error;
+        Object.assign(listing, req.validatedListing);
+        if (req.file) listing.image = { url: req.file.path, filename: req.file.filename };
+        await listing.save();
+    } catch (error) {
+        if (replacementFilename) await destroyImage(replacementFilename);
+        if (error.statusCode && req.session) {
+            req.session.listingFormData = { ...req.validatedListing };
+            req.flash("error", error.message);
+            return res.redirect(`/listings/${id}/edit`);
         }
-
-        listing.geometry = {
-            type: "Point",
-            coordinates: [Number(locations[0].lon), Number(locations[0].lat)]
-        };
+        throw error;
     }
 
-    Object.assign(listing, req.validatedListing);
-
-    if (typeof req.file !== "undefined") {
-        listing.image = {
-            url: req.file.path,
-            filename: req.file.filename
-        };
+    if (replacementFilename && replacementFilename !== previousFilename) {
+        await destroyIfUnreferenced(previousFilename, listing._id);
     }
-
-    await listing.save();
     req.flash("success", "Listing Updated !");
     res.redirect(`/listings/${id}`);
 }
@@ -165,7 +208,9 @@ module.exports.updateListing = async (req, res) => {
 module.exports.destroyListing = async (req, res) => {
     let { id } = req.params;
     let deletedListing = await Listing.findByIdAndDelete(id);
-    console.log(deletedListing);
+    if (deletedListing && deletedListing.image && deletedListing.image.filename) {
+        await destroyIfUnreferenced(deletedListing.image.filename, deletedListing._id);
+    }
     req.flash("success", "Listing Deleted !");
     res.redirect("/listings");
 }

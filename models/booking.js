@@ -32,7 +32,8 @@ const bookingSchema = new Schema(
     },
     guests: {
       type: Number,
-      required: true,
+      // Retained for historical bookings; new requests do not collect occupancy.
+      required: false,
       min: 1,
       validate: {
         validator: Number.isInteger,

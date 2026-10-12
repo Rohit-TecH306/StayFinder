@@ -52,7 +52,7 @@
                                 <p class="host-request-label">Stay</p>
                                 <div class="host-request-stay-box">
                                     <strong><%= booking.checkIn.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) %> <span aria-hidden="true">→</span> <%= booking.checkOut.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) %></strong>
-                                    <span><%= booking.nights %> night<%= booking.nights === 1 ? "" : "s" %> · <%= booking.guests %> guest<%= booking.guests === 1 ? "" : "s" %></span>
+                                    <span><%= booking.nights %> night<%= booking.nights === 1 ? "" : "s" %></span>
                                 </div>
                             </div>
                             <div class="host-request-total">
