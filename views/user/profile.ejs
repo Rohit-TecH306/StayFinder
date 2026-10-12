@@ -12,16 +12,19 @@
 
         <div class="card shadow-sm border-0 rounded-4 overflow-hidden mb-4">
             <div class="card-body p-4 p-md-5">
-                <div class="d-flex align-items-center justify-content-between gap-3 mb-4 pb-3 border-bottom flex-wrap">
-                    <div class="d-flex align-items-center gap-3">
+                <div class="profile-summary d-flex align-items-center justify-content-between gap-3 mb-4 pb-3 border-bottom flex-wrap">
+                    <div class="profile-identity d-flex align-items-center gap-3">
                         <div class="profile-avatar-circle">
                             <i class="fa-regular fa-user fa-2x"></i>
                         </div>
                         <div>
                             <h2 class="h4 mb-1 fw-bold text-dark"><%= user.username %></h2>
-                            <span class="badge rounded-pill <%= isHost ? 'bg-danger text-white' : 'bg-secondary-subtle text-secondary' %> px-3 py-2">
+                            <span class="badge rounded-pill profile-account-badge px-3 py-2">
                                 <%= isHost ? 'Host & Guest' : 'Guest' %>
                             </span>
+                            <% if (isHost) { %>
+                                <p class="profile-host-note mb-0">You can host listings and request stays with one account.</p>
+                            <% } %>
                         </div>
                     </div>
                     <div>
@@ -45,35 +48,6 @@
                         </div>
                     </div>
 
-                    <% if (user.hostFullName || user.hostCity || user.hostPropertyType) { %>
-                        <div class="col-12 mt-4 pt-2">
-                            <h3 class="h6 text-muted text-uppercase fw-bold mb-3 border-bottom pb-2">Host Details</h3>
-                        </div>
-                        <% if (user.hostFullName) { %>
-                            <div class="col-12 col-md-6">
-                                <label class="form-label text-muted small fw-bold text-uppercase mb-1">Full Name</label>
-                                <div class="p-3 bg-light rounded-3 fw-semibold text-dark border">
-                                    <i class="fa-solid fa-id-card text-muted me-2"></i><%= user.hostFullName %>
-                                </div>
-                            </div>
-                        <% } %>
-                        <% if (user.hostCity) { %>
-                            <div class="col-12 col-md-6">
-                                <label class="form-label text-muted small fw-bold text-uppercase mb-1">City</label>
-                                <div class="p-3 bg-light rounded-3 fw-semibold text-dark border">
-                                    <i class="fa-solid fa-city text-muted me-2"></i><%= user.hostCity %>
-                                </div>
-                            </div>
-                        <% } %>
-                        <% if (user.hostPropertyType) { %>
-                            <div class="col-12 col-md-6">
-                                <label class="form-label text-muted small fw-bold text-uppercase mb-1">Property Type</label>
-                                <div class="p-3 bg-light rounded-3 fw-semibold text-dark border text-capitalize">
-                                    <i class="fa-solid fa-house text-muted me-2"></i><%= user.hostPropertyType.replace('_', ' ') %>
-                                </div>
-                            </div>
-                        <% } %>
-                    <% } %>
                 </div>
 
 
