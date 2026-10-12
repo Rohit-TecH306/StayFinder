@@ -3,8 +3,8 @@ const { isAuthenticatedSessionForUser } = require("../utils/sessionValidation.js
 const { userIsHost } = require("../middleware.js");
 
 const isValidProfileInput = (username, email) => {
-    if (!username || username.length > 100) {
-        return "Enter a username of 100 characters or fewer.";
+    if (!username) {
+        return "Username cannot be empty.";
     }
 
     // The application has historically accepted usernames with spaces, so this
@@ -14,6 +14,43 @@ const isValidProfileInput = (username, email) => {
     }
 
     return null;
+};
+
+// Passport regenerates the session during req.login(). Keep the account's
+// single-session pointer synchronized with the ID Passport actually assigns.
+// The conditional update prevents a concurrent login from being overwritten.
+const reloginAndSyncActiveSession = (req, user, done) => {
+    const previousSessionId = req.sessionID;
+
+    req.login(user, async (loginError) => {
+        if (loginError) return done(loginError);
+
+        const finalSessionId = req.sessionID;
+        try {
+            const result = await User.updateOne(
+                { _id: user._id, activeSessionId: previousSessionId },
+                { $set: { activeSessionId: finalSessionId } }
+            );
+            const matchedCount = result && (result.matchedCount ?? result.n);
+            if (matchedCount === 0 && previousSessionId !== finalSessionId) {
+                const conflictError = new Error("The account session changed while the profile was being updated.");
+                conflictError.code = "ACTIVE_SESSION_CONFLICT";
+                return req.logout(() => done(conflictError));
+            }
+            done(null);
+        } catch (syncError) {
+            // The new session must not remain usable when its active-session
+            // record could not be synchronized. Logout is best-effort here;
+            // the database is never overwritten unconditionally.
+            req.logout(() => done(syncError));
+        }
+    });
+};
+
+const preserveProfileInput = (req, username, email) => {
+    if (req.session) {
+        req.session.profileData = { username, email };
+    }
 };
 
 module.exports.signUpForm = (req, res) => {
@@ -168,7 +205,18 @@ module.exports.editProfileForm = async (req, res) => {
         return res.redirect("/login");
     }
     const isHost = await userIsHost(user);
-    res.render("user/editProfile.ejs", { user, isHost });
+    const profileData = req.session && req.session.profileData;
+    if (req.session) delete req.session.profileData;
+    res.render("user/editProfile.ejs", {
+        user: {
+            ...user.toObject ? user.toObject() : user,
+            username: profileData && Object.prototype.hasOwnProperty.call(profileData, "username")
+                ? profileData.username : user.username,
+            email: profileData && Object.prototype.hasOwnProperty.call(profileData, "email")
+                ? profileData.email : user.email
+        },
+        isHost
+    });
 }
 
 module.exports.updateProfile = async (req, res, next) => {
@@ -178,6 +226,7 @@ module.exports.updateProfile = async (req, res, next) => {
 
     const inputError = isValidProfileInput(username, email);
     if (inputError) {
+        preserveProfileInput(req, username, email);
         req.flash("error", inputError);
         return res.redirect("/profile/edit");
     }
@@ -194,6 +243,7 @@ module.exports.updateProfile = async (req, res, next) => {
                 _id: { $ne: req.user._id }
             });
             if (existingUserByUsername) {
+                preserveProfileInput(req, username, email);
                 req.flash("error", "An account with this username already exists. Please choose a different username.");
                 return res.redirect("/profile/edit");
             }
@@ -205,6 +255,7 @@ module.exports.updateProfile = async (req, res, next) => {
                 _id: { $ne: req.user._id }
             });
             if (existingUserByEmail) {
+                preserveProfileInput(req, username, email);
                 req.flash("error", "An account with this email already exists. Please use a different email address.");
                 return res.redirect("/profile/edit");
             }
@@ -222,8 +273,12 @@ module.exports.updateProfile = async (req, res, next) => {
         await user.save();
 
         if (usernameChanged) {
-            return req.login(user, (err) => {
-                if (err) return next(err);
+            return reloginAndSyncActiveSession(req, user, (err) => {
+                if (err) {
+                    console.error("Profile session synchronization failed.");
+                    req.flash("error", "Your profile could not be updated safely. Please try again.");
+                    return res.redirect("/profile/edit");
+                }
                 req.flash("success", "Profile updated successfully!");
                 res.redirect("/profile");
             });
@@ -233,8 +288,10 @@ module.exports.updateProfile = async (req, res, next) => {
         res.redirect("/profile");
     } catch (err) {
         if (err.name === "UserExistsError") {
+            preserveProfileInput(req, username, email);
             req.flash("error", "An account with this username already exists. Please choose a different username.");
         } else if (err.code === 11000) {
+            preserveProfileInput(req, username, email);
             const isEmail = Boolean(
                 (err.keyPattern && err.keyPattern.email) ||
                 (err.keyValue && err.keyValue.email) ||
@@ -246,7 +303,8 @@ module.exports.updateProfile = async (req, res, next) => {
                 req.flash("error", "An account with this username already exists. Please choose a different username.");
             }
         } else {
-            console.error("Profile update failed:", err);
+            preserveProfileInput(req, username, email);
+            console.error("Profile update failed.");
             req.flash("error", "We could not update your profile. Please try again.");
         }
         res.redirect("/profile/edit");
@@ -280,26 +338,20 @@ module.exports.changePassword = async (req, res, next) => {
 
         await user.changePassword(currentPassword, newPassword);
 
-        // Maintain single-active-session: ensure current session is active
-        await User.updateOne(
-            { _id: user._id },
-            { $set: { activeSessionId: req.sessionID } }
-        );
-
-        // Keep current session authenticated
-        req.login(user, (err) => {
-            if (err) return next(err);
+        return reloginAndSyncActiveSession(req, user, (err) => {
+            if (err) {
+                console.error("Password session synchronization failed.");
+                req.flash("error", "Your password could not be updated safely. Please try again.");
+                return res.redirect("/profile/edit");
+            }
             req.flash("success", "Password changed successfully!");
-            req.session.save((saveErr) => {
-                if (saveErr) console.error("Session save error after password change:", saveErr);
-                res.redirect("/profile");
-            });
+            res.redirect("/profile");
         });
     } catch (err) {
         if (err.name === "IncorrectPasswordError") {
             req.flash("error", "Current password is incorrect.");
         } else {
-            console.error("Password change failed:", err);
+            console.error("Password change failed.");
             req.flash("error", "We could not change your password. Please try again.");
         }
         res.redirect("/profile/edit");

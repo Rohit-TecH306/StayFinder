@@ -251,6 +251,26 @@ async function runTests() {
         assert.match(flashMsg, /username already exists/i, "Duplicate username rejected");
     }
 
+    // Test 9b: Profile editing validates trimmed required fields and email format
+    {
+        let flashMsg = null;
+        let redirectedTo = null;
+        const req = {
+            user: { _id: "myUser123", username: "currentName", email: "current@example.com" },
+            body: { username: "   ", email: "not-an-email" },
+            flash(type, msg) { flashMsg = msg; }
+        };
+        const res = { redirect(url) { redirectedTo = url; } };
+
+        await userController.updateProfile(req, res, () => {});
+        assert.equal(redirectedTo, "/profile/edit");
+        assert.match(flashMsg, /username/i, "Whitespace-only username rejected");
+
+        req.body = { username: "validName", email: "not-an-email" };
+        await userController.updateProfile(req, res, () => {});
+        assert.match(flashMsg, /valid email/i, "Invalid email rejected server-side");
+    }
+
     // Test 10: Profile editing rejects duplicate email from another user
     {
         const originalFindOne = User.findOne;
@@ -283,6 +303,7 @@ async function runTests() {
     {
         const originalFindOne = User.findOne;
         const originalFindById = User.findById;
+        const originalUpdateOne = User.updateOne;
 
         User.findOne = async () => null;
 
@@ -293,6 +314,11 @@ async function runTests() {
             save: async function () {}
         };
         User.findById = async () => fakeDoc;
+        let syncedSession = null;
+        User.updateOne = async (filter, update) => {
+            syncedSession = { filter, update };
+            return { matchedCount: 1 };
+        };
 
         let reLoggedInUser = null;
         let redirectedTo = null;
@@ -303,8 +329,10 @@ async function runTests() {
             body: { username: "newName", email: "new@example.com" },
             login(user, cb) {
                 reLoggedInUser = user;
+                this.sessionID = "regenerated-session-123";
                 cb();
             },
+            sessionID: "original-session-123",
             flash(type, msg) { flashMsg = msg; }
         };
         const res = {
@@ -314,10 +342,13 @@ async function runTests() {
         await userController.updateProfile(req, res, () => {});
         User.findOne = originalFindOne;
         User.findById = originalFindById;
+        User.updateOne = originalUpdateOne;
 
         assert.equal(fakeDoc.username, "newName");
         assert.equal(fakeDoc.email, "new@example.com");
         assert.equal(reLoggedInUser, fakeDoc, "Session re-serialized with updated username");
+        assert.equal(syncedSession.filter.activeSessionId, "original-session-123", "Sync is conditional on the prior active session");
+        assert.equal(syncedSession.update.$set.activeSessionId, "regenerated-session-123", "Database stores Passport's final session ID");
         assert.equal(redirectedTo, "/profile");
         assert.match(flashMsg, /updated successfully/i);
     }
@@ -395,6 +426,7 @@ async function runTests() {
         User.findById = async () => fakeUser;
         User.updateOne = async (filter, update) => {
             updatedSessionFilter = { filter, update };
+            return { matchedCount: 1 };
         };
 
         let redirectedTo = null;
@@ -409,10 +441,8 @@ async function runTests() {
             },
             login(user, cb) {
                 sessionReLoggedIn = true;
+                req.sessionID = "regenerated-session-999";
                 cb();
-            },
-            session: {
-                save(cb) { cb(); }
             },
             flash(type, msg) { flashMsg = msg; }
         };
@@ -425,10 +455,55 @@ async function runTests() {
         User.updateOne = originalUpdateOne;
 
         assert.equal(changePasswordCalled, true, "changePassword method invoked");
-        assert.equal(updatedSessionFilter.update.$set.activeSessionId, "activeSession999", "Single active session preserved");
+        assert.equal(updatedSessionFilter.filter.activeSessionId, "activeSession999", "Update is conditional on the prior active session");
+        assert.equal(updatedSessionFilter.update.$set.activeSessionId, "regenerated-session-999", "Final regenerated session is stored");
         assert.equal(sessionReLoggedIn, true, "Session kept authenticated");
         assert.equal(redirectedTo, "/profile");
         assert.match(flashMsg, /Password changed successfully/i);
+    }
+
+    // Test 15: Session synchronization failure does not silently claim a session
+    {
+        const originalFindById = User.findById;
+        const originalUpdateOne = User.updateOne;
+        User.findById = async () => ({
+            _id: "u1",
+            changePassword: async () => {}
+        });
+        User.updateOne = async () => {
+            throw new Error("temporary database failure");
+        };
+
+        let redirectedTo = null;
+        let flashMsg = null;
+        let loggedOut = false;
+        const req = {
+            sessionID: "old-session",
+            user: { _id: "u1" },
+            body: {
+                currentPassword: "correctCurrent",
+                newPassword: "newPassword123",
+                confirmPassword: "newPassword123"
+            },
+            login(user, cb) {
+                this.sessionID = "new-session";
+                cb();
+            },
+            logout(cb) {
+                loggedOut = true;
+                cb();
+            },
+            flash(type, msg) { flashMsg = msg; }
+        };
+        const res = { redirect(url) { redirectedTo = url; } };
+
+        await userController.changePassword(req, res, () => {});
+        User.findById = originalFindById;
+        User.updateOne = originalUpdateOne;
+
+        assert.equal(loggedOut, true, "Failed synchronization logs out the newly regenerated session");
+        assert.equal(redirectedTo, "/profile/edit");
+        assert.match(flashMsg, /could not be updated safely/i);
     }
 
     console.log("All authentication & profile flow tests passed successfully!");
