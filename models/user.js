@@ -12,6 +12,11 @@ const userSchema = new Schema({
     type: String,
     default: null,
   },
+  displayName: {
+    type: String,
+    trim: true,
+    maxlength: 60,
+  },
   hostOnboardingCompleted: {
     type: Boolean,
     default: false,
@@ -39,6 +44,11 @@ const userSchema = new Schema({
   hostTermsAcceptedAt: {
     type: Date,
   },
+});
+
+userSchema.pre("validate", function (next) {
+  if (!this.displayName && this.username) this.displayName = this.username;
+  next();
 });
 
 // passport-local-mongoose automatically adds username, hash, and salt fields.

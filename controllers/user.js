@@ -42,9 +42,9 @@ const reloginAndSyncActiveSession = (req, user, done) => {
     });
 };
 
-const preserveProfileInput = (req, username) => {
+const preserveProfileInput = (req, username, displayName) => {
     if (req.session) {
-        req.session.profileData = { username };
+        req.session.profileData = { username, displayName: displayName || "" };
     }
 };
 
@@ -189,6 +189,10 @@ module.exports.profile = async (req, res) => {
         req.flash("error", "User not found.");
         return res.redirect("/login");
     }
+    if (!user.displayName && user.username && typeof user.save === "function") {
+        user.displayName = user.username;
+        await user.save();
+    }
     const isHost = await userIsHost(user);
     res.render("user/profile.ejs", { user, isHost });
 }
@@ -199,6 +203,10 @@ module.exports.editProfileForm = async (req, res) => {
         req.flash("error", "User not found.");
         return res.redirect("/login");
     }
+    if (!user.displayName && user.username && typeof user.save === "function") {
+        user.displayName = user.username;
+        await user.save();
+    }
     const isHost = await userIsHost(user);
     const profileData = req.session && req.session.profileData;
     if (req.session) delete req.session.profileData;
@@ -207,6 +215,8 @@ module.exports.editProfileForm = async (req, res) => {
             ...user.toObject ? user.toObject() : user,
             username: profileData && Object.prototype.hasOwnProperty.call(profileData, "username")
                 ? profileData.username : user.username,
+            displayName: profileData && Object.prototype.hasOwnProperty.call(profileData, "displayName")
+                ? profileData.displayName : (user.displayName || ""),
             email: user.email
         },
         isHost
@@ -214,29 +224,34 @@ module.exports.editProfileForm = async (req, res) => {
 }
 
 module.exports.updateProfile = async (req, res, next) => {
-    let { username } = req.body;
+    let { username, displayName } = req.body;
     username = username ? username.trim() : "";
+    const trimmedDisplayName = typeof displayName === "string" ? displayName.trim() : undefined;
 
     const inputError = isValidProfileInput(username);
     if (inputError) {
-        preserveProfileInput(req, username);
+        preserveProfileInput(req, username, trimmedDisplayName);
         req.flash("error", inputError);
         return res.redirect("/profile/edit");
     }
 
-    if (username === req.user.username) {
+    const usernameChanged = username !== req.user.username;
+    const currentDisplayName = req.user.displayName || "";
+    const displayNameChanged = trimmedDisplayName !== undefined && trimmedDisplayName !== currentDisplayName;
+
+    if (!usernameChanged && !displayNameChanged) {
         req.flash("success", "Profile is already up to date.");
         return res.redirect("/profile");
     }
 
     try {
-        if (username !== req.user.username) {
+        if (usernameChanged) {
             const existingUserByUsername = await User.findOne({
                 username,
                 _id: { $ne: req.user._id }
             });
             if (existingUserByUsername) {
-                preserveProfileInput(req, username);
+                preserveProfileInput(req, username, trimmedDisplayName);
                 req.flash("error", "An account with this username already exists. Please choose a different username.");
                 return res.redirect("/profile/edit");
             }
@@ -248,8 +263,14 @@ module.exports.updateProfile = async (req, res, next) => {
             return res.redirect("/login");
         }
 
-        const usernameChanged = user.username !== username;
-        user.username = username;
+        if (usernameChanged) {
+            user.username = username;
+        }
+
+        if (displayNameChanged) {
+            user.displayName = trimmedDisplayName;
+        }
+
         await user.save();
 
         if (usernameChanged) {
@@ -268,13 +289,13 @@ module.exports.updateProfile = async (req, res, next) => {
         res.redirect("/profile");
     } catch (err) {
         if (err.name === "UserExistsError") {
-            preserveProfileInput(req, username);
+            preserveProfileInput(req, username, trimmedDisplayName);
             req.flash("error", "An account with this username already exists. Please choose a different username.");
         } else if (err.code === 11000) {
-            preserveProfileInput(req, username);
+            preserveProfileInput(req, username, trimmedDisplayName);
             req.flash("error", "An account with this username already exists. Please choose a different username.");
         } else {
-            preserveProfileInput(req, username);
+            preserveProfileInput(req, username, trimmedDisplayName);
             console.error("Profile update failed.");
             req.flash("error", "We could not update your profile. Please try again.");
         }

@@ -16,8 +16,8 @@
                             <%= listing.country %>
                     </span>
                     <span class="listing-badge host-badge"><i class="fa-regular fa-circle-user" aria-hidden="true"></i>
-                        Hosted by <%= (listing.owner && listing.owner.username) ? listing.owner.username : "Host" %>
-                            </span>
+                        Hosted by <%= (listing.owner && (listing.owner.displayName || listing.owner.username)) ? (listing.owner.displayName || listing.owner.username) : "Host" %>
+                    </span>
                 </div>
             </div>
 

@@ -20,6 +20,11 @@
             <div class="card-body p-4 p-md-5">
                 <form action="/profile?_method=PUT" method="POST" class="needs-validation" novalidate>
                     <div class="mb-3">
+                        <label for="displayName" class="form-label fw-bold">Public Display Name</label>
+                        <input type="text" name="displayName" id="displayName" class="form-control" value="<%= user.displayName || '' %>" placeholder="e.g. Alex River" maxlength="60" autocomplete="name">
+                        <div class="form-text">This name appears publicly on your listings instead of your account username.</div>
+                    </div>
+                    <div class="mb-3">
                         <label for="username" class="form-label fw-bold">Username</label>
                         <input type="text" name="username" id="username" class="form-control" value="<%= user.username %>" required autocomplete="username">
                         <div class="invalid-feedback">Please enter a valid username.</div>

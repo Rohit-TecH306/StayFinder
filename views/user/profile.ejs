@@ -1,57 +1,75 @@
 <% layout("/layouts/boilerplate") %>
-<main class="bookings-page">
-    <div class="bookings-page-shell" style="max-width: 48rem;">
-        <div class="mb-3">
-            <%- include("../includes/backButton.ejs", { fallback: "/listings", label: "Back to listings" }) %>
-        </div>
-        <header class="bookings-page-header">
-            <p class="bookings-eyebrow">Account Settings</p>
-            <h1>User Profile</h1>
-            <p>Manage your account information and preferences.</p>
-        </header>
+    <main class="bookings-page">
+        <div class="bookings-page-shell" style="max-width: 48rem;">
+            <div class="mb-3">
+                <%- include("../includes/backButton.ejs", { fallback: "/listings" , label: "Back to listings" }) %>
+            </div>
+            <header class="bookings-page-header">
+                <p class="bookings-eyebrow">Account Settings</p>
+                <h1>User Profile</h1>
+                <p>Manage your account information and preferences.</p>
+            </header>
 
-        <div class="card shadow-sm border-0 rounded-4 overflow-hidden mb-4">
-            <div class="card-body p-4 p-md-5">
-                <div class="profile-summary d-flex align-items-center justify-content-between gap-3 mb-4 pb-3 border-bottom flex-wrap">
-                    <div class="profile-identity d-flex align-items-center gap-3">
-                        <div class="profile-avatar-circle">
-                            <i class="fa-regular fa-user fa-2x"></i>
+            <div class="card shadow-sm border-0 rounded-4 overflow-hidden mb-4">
+                <div class="card-body p-4 p-md-5">
+                    <div
+                        class="profile-summary d-flex align-items-center justify-content-between gap-3 mb-4 pb-3 border-bottom flex-wrap">
+                        <div class="profile-identity d-flex align-items-center gap-3">
+                            <div class="profile-avatar-circle">
+                                <i class="fa-regular fa-user fa-2x"></i>
+                            </div>
+                            <div>
+                                <h2 class="h4 mb-1 fw-bold text-dark">
+                                    <%= user.displayName || user.username %>
+                                </h2>
+                                <% if (user.displayName) { %>
+                                    <p class="text-muted small mb-1"><i class="fa-solid fa-at me-1"></i>
+                                        <%= user.username %>
+                                    </p>
+                                    <% } %>
+                                        <span class="badge rounded-pill profile-account-badge px-3 py-2">
+                                            <%= isHost ? 'Host & Guest' : 'Guest' %>
+                                        </span>
+                                        <% if (isHost) { %>
+                                            <p class="profile-host-note mb-0">You can host listings and request stays
+                                                with one account.</p>
+                                            <% } %>
+                            </div>
                         </div>
                         <div>
-                            <h2 class="h4 mb-1 fw-bold text-dark"><%= user.username %></h2>
-                            <span class="badge rounded-pill profile-account-badge px-3 py-2">
-                                <%= isHost ? 'Host & Guest' : 'Guest' %>
-                            </span>
-                            <% if (isHost) { %>
-                                <p class="profile-host-note mb-0">You can host listings and request stays with one account.</p>
-                            <% } %>
+                            <a href="/profile/edit" class="btn btn-outline-dark rounded-pill px-4">
+                                <i class="fa-regular fa-pen-to-square me-2"></i>Edit Profile
+                            </a>
                         </div>
                     </div>
-                    <div>
-                        <a href="/profile/edit" class="btn btn-outline-dark rounded-pill px-4">
-                            <i class="fa-regular fa-pen-to-square me-2"></i>Edit Profile
-                        </a>
+
+                    <div class="row g-4">
+                        <div class="col-12 col-md-4">
+                            <label class="form-label text-muted small fw-bold text-uppercase mb-1">Public Display
+                                Name</label>
+                            <div class="p-3 bg-light rounded-3 fw-semibold text-dark border">
+                                <i class="fa-regular fa-id-badge text-muted me-2"></i>
+                                <%= user.displayName || user.username %>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <label class="form-label text-muted small fw-bold text-uppercase mb-1">Username</label>
+                            <div class="p-3 bg-light rounded-3 fw-semibold text-dark border">
+                                <i class="fa-solid fa-at text-muted me-2"></i>
+                                <%= user.username %>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <label class="form-label text-muted small fw-bold text-uppercase mb-1">Email Address</label>
+                            <div class="p-3 bg-light rounded-3 fw-semibold text-dark border">
+                                <i class="fa-regular fa-envelope text-muted me-2"></i>
+                                <%= user.email %>
+                            </div>
+                        </div>
                     </div>
+
+
                 </div>
-
-                <div class="row g-4">
-                    <div class="col-12 col-md-6">
-                        <label class="form-label text-muted small fw-bold text-uppercase mb-1">Username</label>
-                        <div class="p-3 bg-light rounded-3 fw-semibold text-dark border">
-                            <i class="fa-solid fa-at text-muted me-2"></i><%= user.username %>
-                        </div>
-                    </div>
-                    <div class="col-12 col-md-6">
-                        <label class="form-label text-muted small fw-bold text-uppercase mb-1">Email Address</label>
-                        <div class="p-3 bg-light rounded-3 fw-semibold text-dark border">
-                            <i class="fa-regular fa-envelope text-muted me-2"></i><%= user.email %>
-                        </div>
-                    </div>
-
-                </div>
-
-
             </div>
         </div>
-    </div>
-</main>
+    </main>
