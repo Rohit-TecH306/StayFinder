@@ -1,0 +1,91 @@
+<% layout("/layouts/boilerplate") %>
+
+<main class="static-page py-4 py-md-5">
+    <div class="container" style="max-width: 58rem;">
+        <div class="mb-3">
+            <%- include("../includes/backButton.ejs", { fallback: "/listings", label: "Back to listings" }) %>
+        </div>
+
+        <header class="static-page-header mb-4 text-center">
+            <span class="badge bg-danger-subtle text-danger px-3 py-2 rounded-pill fw-semibold mb-2">Our Story</span>
+            <h1 class="display-6 fw-bold text-dark">About StayFinder</h1>
+            <p class="text-muted fs-5 col-lg-8 mx-auto">
+                Connecting travelers with verified, memorable stays and empowering hosts worldwide.
+            </p>
+        </header>
+
+        <div class="card shadow-sm border-0 rounded-4 overflow-hidden mb-4">
+            <div class="card-body p-4 p-md-5">
+                <h2 class="h4 fw-bold text-dark mb-3">Welcome to StayFinder</h2>
+                <p class="text-secondary leading-relaxed">
+                    StayFinder is a full-featured vacation accommodation marketplace crafted to bring travelers and independent hosts together. Whether you are searching for a high-rise downtown loft in iconic cities, a peaceful wooden cabin in the mountains, a coastal retreat near the beach, or a historic heritage estate, StayFinder makes finding and requesting your ideal stay simple and transparent.
+                </p>
+
+                <hr class="my-4 text-muted opacity-25">
+
+                <h2 class="h4 fw-bold text-dark mb-3">What We Offer</h2>
+                <div class="row g-4 mt-1">
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-start gap-3">
+                            <div class="feature-icon-box bg-danger-subtle text-danger rounded-3 p-3">
+                                <i class="fa-solid fa-compass fa-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="h6 fw-bold text-dark mb-1">Tailored Categories</h3>
+                                <p class="text-muted small mb-0">Browse curated categories including City Stays, Mountain Stays, Nature Retreats, Heritage Stays, and Beach & Island.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-start gap-3">
+                            <div class="feature-icon-box bg-danger-subtle text-danger rounded-3 p-3">
+                                <i class="fa-solid fa-receipt fa-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="h6 fw-bold text-dark mb-1">Transparent Pricing</h3>
+                                <p class="text-muted small mb-0">Toggle total prices including +18% GST upfront with no hidden checkout surprises.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-start gap-3">
+                            <div class="feature-icon-box bg-danger-subtle text-danger rounded-3 p-3">
+                                <i class="fa-solid fa-map-location-dot fa-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="h6 fw-bold text-dark mb-1">Interactive Maps</h3>
+                                <p class="text-muted small mb-0">Pinpoint stay coordinates using interactive OpenStreetMap location discovery powered by Leaflet.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-start gap-3">
+                            <div class="feature-icon-box bg-danger-subtle text-danger rounded-3 p-3">
+                                <i class="fa-solid fa-handshake-angle fa-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="h6 fw-bold text-dark mb-1">Empowering Hosts</h3>
+                                <p class="text-muted small mb-0">A streamlined onboarding process allows anyone to list property rooms and manage guest booking requests with ease.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="my-4 text-muted opacity-25">
+
+                <h2 class="h4 fw-bold text-dark mb-3">Our Standards</h2>
+                <p class="text-secondary leading-relaxed mb-0">
+                    We prioritize user privacy and safety. Host contact details are safeguarded, user passwords are encrypted, and genuine guest reviews help maintain quality across every listed property.
+                </p>
+            </div>
+        </div>
+
+        <div class="text-center mt-4">
+            <a href="/listings" class="btn btn-danger rounded-pill px-4 py-2 me-2">Explore Listings</a>
+            <a href="/become-a-host" class="btn btn-outline-dark rounded-pill px-4 py-2">Become a Host</a>
+        </div>
+    </div>
+</main>

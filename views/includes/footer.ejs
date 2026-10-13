@@ -1,15 +1,27 @@
-<footer>
-    <div class="f-info">
-        <div class="f-info-socials">
-            <i class="fa-brands fa-facebook"></i>
-            <i class="fa-brands fa-instagram"></i>
-            <i class="fa-brands fa-linkedin"></i>
+<footer class="site-footer">
+    <div class="footer-container">
+        <div class="footer-main">
+            <div class="footer-brand-block">
+                <a class="footer-brand" href="/" aria-label="StayFinder home">
+                    <i class="fa-regular fa-compass" aria-hidden="true"></i>
+                    <span>StayFinder</span>
+                </a>
+                <p class="footer-description">Find and book unique stays worldwide.</p>
+                <p class="footer-support">StayFinder support number<br><strong>+91 1800 123 4567</strong></p>
+            </div>
+            <nav class="footer-nav" aria-label="Footer navigation">
+                <ul class="footer-links">
+                    <li><a href="/about">About</a></li>
+                    <li><a href="/help">Help</a></li>
+                    <li><a href="/contact">Contact</a></li>
+                    <li><a href="/privacy">Privacy Policy</a></li>
+                    <li><a href="/terms">Terms</a></li>
+                </ul>
+            </nav>
         </div>
-        <div class="f-info-brand"> &copy; StayFinder Private Limited</div>
-        <div class="f-info-links">
-            <a href="/privacy">Privacy</a>
-            <a href="/terms">Terms</a>
+        <div class="footer-bottom">
+            <span>&copy; <%= new Date().getFullYear() %> StayFinder Private Limited.</span>
+            <span>All rights reserved.</span>
         </div>
     </div>
 </footer>
-

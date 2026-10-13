@@ -1,0 +1,42 @@
+<% layout("/layouts/boilerplate") %>
+
+<main class="static-page static-contact-page py-4 py-md-5">
+    <div class="container" style="max-width: 58rem;">
+        <div class="mb-3">
+            <%- include("../includes/backButton.ejs", { fallback: "/listings", label: "Back to listings" }) %>
+        </div>
+        <header class="static-page-header mb-4 text-center">
+            <span class="badge bg-danger-subtle text-danger px-3 py-2 rounded-pill fw-semibold mb-2">StayFinder Support</span>
+            <h1 class="display-6 fw-bold text-dark">How can we help?</h1>
+            <p class="text-muted fs-5 col-lg-8 mx-auto mb-0">Find answers in our Help centre or contact the StayFinder support team using the general details below.</p>
+        </header>
+        <div class="row g-4 align-items-stretch">
+            <div class="col-md-7">
+                <section class="contact-info-card h-100" aria-labelledby="support-contact-heading">
+                    <p class="static-card-kicker">General support</p>
+                    <h2 id="support-contact-heading" class="h3 fw-bold text-dark mb-3">Talk to StayFinder</h2>
+                    <p class="text-secondary mb-4">Our support team can help with account questions, booking guidance, and general platform assistance for StayFinder.</p>
+                    <div class="contact-detail">
+                        <span class="contact-detail-icon" aria-hidden="true"><i class="fa-solid fa-phone"></i></span>
+                        <div><p class="contact-detail-label">StayFinder support number</p><p class="contact-detail-value">+91 1800 123 4567</p><p class="contact-detail-note">Monday–Friday, 9:00 AM–6:00 PM IST</p></div>
+                    </div>
+                    <div class="contact-detail">
+                        <span class="contact-detail-icon" aria-hidden="true"><i class="fa-regular fa-clock"></i></span>
+                        <div><p class="contact-detail-label">Response time</p><p class="contact-detail-value">Within 24–48 business hours</p><p class="contact-detail-note">For existing bookings, use your booking details and request history.</p></div>
+                    </div>
+                </section>
+            </div>
+            <div class="col-md-5">
+                <section class="contact-help-card h-100" aria-labelledby="contact-help-heading">
+                    <h2 id="contact-help-heading" class="h5 fw-bold text-dark mb-3">Find help faster</h2>
+                    <p class="text-muted small mb-4">The quickest answers are available in these StayFinder sections:</p>
+                    <div class="contact-help-links">
+                        <a href="/help"><i class="fa-solid fa-circle-question" aria-hidden="true"></i><span>Browse Help & FAQs</span><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+                        <a href="/bookings"><i class="fa-regular fa-calendar-check" aria-hidden="true"></i><span>View My Bookings</span><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+                        <a href="/profile"><i class="fa-regular fa-user" aria-hidden="true"></i><span>Open My Profile</span><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+</main>

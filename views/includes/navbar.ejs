@@ -8,65 +8,73 @@
             aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
+        <form class="d-flex search-form navbar-search" role="search" action="/listings" method="get" data-search-form>
+            <input class="form-control me-2 search-input" name="q"
+                value="<%= typeof q !== 'undefined' ? q : '' %>" type="search" placeholder="Search destinations"
+                aria-label="Search destinations" aria-describedby="search-feedback">
+            <button class="btn search-btn" type="submit">
+                <i class="fa-solid fa-magnifying-glass"></i><span>Search</span>
+            </button>
+            <span id="search-feedback" class="search-feedback" role="status" aria-live="polite"></span>
+        </form>
         <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-            <div class="navbar-nav ms-auto">
-                <form class="d-flex search-form" role="search" action="/listings" method="get" data-search-form>
-                    <input class="form-control me-2 search-input" name="q" value="<%= typeof q !== 'undefined' ? q : '' %>" type="search" placeholder="Search destinations" aria-label="Search destinations" aria-describedby="search-feedback">
-                    <button class="btn search-btn" type="submit">
-                        <i class="fa-solid fa-magnifying-glass"></i>Search
-                    </button>
-                    <span id="search-feedback" class="search-feedback" role="status" aria-live="polite"></span>
-                </form>
-            </div>
             <div class="navbar-nav ms-auto align-items-lg-center">
                 <% if(!currentUser) { %>
                     <a class="nav-link" href="/listings/new">Airbnb your home</a>
                     <a class="nav-link" href="/signup"><b>Signup</b></a>
                     <a class="nav-link" href="/login"><b>Login</b></a>
-                <% } else { %>
-                    <a class="nav-link" href="/listings/new">Airbnb your home</a>
-                    <div class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle d-flex align-items-center gap-1" href="#" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Account menu" title="Account menu">
-                            <i class="fa-regular fa-circle-user fa-lg text-secondary"></i>
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end profile-dropdown-menu" aria-labelledby="profileDropdown">
-                            <li>
-                                <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="/profile">
-                                    <i class="fa-regular fa-user"></i>
-                                    <span>Profile</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="/bookings">
-                                    <i class="fa-regular fa-calendar-check"></i>
-                                    <span>My Bookings</span>
-                                </a>
-                            </li>
-                            <% if (isHost) { %>
+                    <% } else { %>
+                        <a class="nav-link" href="/listings/new">Airbnb your home</a>
+                        <div class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle d-flex align-items-center gap-1" href="#"
+                                id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false"
+                                aria-label="Account menu" title="Account menu">
+                                <i class="fa-regular fa-circle-user fa-lg text-secondary"></i>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end profile-dropdown-menu"
+                                aria-labelledby="profileDropdown">
                                 <li>
-                                    <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="/host/bookings">
-                                        <i class="fa-solid fa-clipboard-list"></i>
-                                        <span>Hosting Requests</span>
+                                    <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="/profile">
+                                        <i class="fa-regular fa-user"></i>
+                                        <span>Profile</span>
                                     </a>
                                 </li>
-                            <% } else { %>
                                 <li>
-                                    <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="/become-a-host">
-                                        <i class="fa-solid fa-house-chimney"></i>
-                                        <span>Become a Host</span>
+                                    <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="/bookings">
+                                        <i class="fa-regular fa-calendar-check"></i>
+                                        <span>My Bookings</span>
                                     </a>
                                 </li>
-                            <% } %>
-                            <li><hr class="dropdown-divider my-1"></li>
-                            <li>
-                                <a class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger" href="/logout">
-                                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
-                                    <span>Logout</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-                <% } %>
+                                <% if (isHost) { %>
+                                    <li>
+                                        <a class="dropdown-item d-flex align-items-center gap-2 py-2"
+                                            href="/host/bookings">
+                                            <i class="fa-solid fa-clipboard-list"></i>
+                                            <span>Hosting Requests</span>
+                                        </a>
+                                    </li>
+                                    <% } else { %>
+                                        <li>
+                                            <a class="dropdown-item d-flex align-items-center gap-2 py-2"
+                                                href="/become-a-host">
+                                                <i class="fa-solid fa-house-chimney"></i>
+                                                <span>Become a Host</span>
+                                            </a>
+                                        </li>
+                                        <% } %>
+                                            <li>
+                                                <hr class="dropdown-divider my-1">
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger"
+                                                    href="/logout">
+                                                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                                                    <span>Logout</span>
+                                                </a>
+                                            </li>
+                            </ul>
+                        </div>
+                        <% } %>
             </div>
         </div>
     </div>

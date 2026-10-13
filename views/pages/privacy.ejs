@@ -1,0 +1,50 @@
+<% layout("/layouts/boilerplate") %>
+
+<main class="static-page py-4 py-md-5">
+    <div class="container" style="max-width: 58rem;">
+        <div class="mb-3">
+            <%- include("../includes/backButton.ejs", { fallback: "/listings", label: "Back to listings" }) %>
+        </div>
+
+        <header class="static-page-header mb-4 text-center">
+            <span class="badge bg-danger-subtle text-danger px-3 py-2 rounded-pill fw-semibold mb-2">StayFinder Information</span>
+            <h1 class="display-6 fw-bold text-dark">Privacy Policy</h1>
+            <p class="text-muted fs-5 col-lg-8 mx-auto mb-0">
+                A clear summary of the information StayFinder uses to provide accounts, listings, and booking requests.
+            </p>
+        </header>
+
+        <article class="card shadow-sm border-0 rounded-4 overflow-hidden">
+            <div class="card-body p-4 p-md-5 text-secondary">
+                <p class="small text-muted mb-4">Last updated: October 2026</p>
+
+                <section class="mb-4">
+                    <h2 class="h5 fw-bold text-dark mb-2">What we collect</h2>
+                    <p class="mb-2">When you create an account, StayFinder stores your username, email address, password credentials, and optional public display name.</p>
+                    <p class="mb-0">Hosts may also provide property information such as a title, description, price, photos, category, location, and private onboarding details.</p>
+                </section>
+
+                <hr class="my-4 text-muted opacity-25">
+
+                <section class="mb-4">
+                    <h2 class="h5 fw-bold text-dark mb-2">Listings and booking requests</h2>
+                    <p class="mb-0">We use listing information to show properties to travellers. Booking requests include the requested dates, guest count, message, and request status so guests and hosts can manage a stay through the platform.</p>
+                </section>
+
+                <hr class="my-4 text-muted opacity-25">
+
+                <section class="mb-4">
+                    <h2 class="h5 fw-bold text-dark mb-2">How information is handled</h2>
+                    <p class="mb-0">StayFinder uses account, listing, and booking information only to operate the service, support users, and display the features described above. Private account and host onboarding contact details are not displayed as public listing information.</p>
+                </section>
+
+                <hr class="my-4 text-muted opacity-25">
+
+                <section class="mb-0">
+                    <h2 class="h5 fw-bold text-dark mb-2">Your choices</h2>
+                    <p class="mb-0">You can review your account information and update your public display name from <a href="/profile/edit" class="text-danger fw-semibold">Edit Profile</a>. For questions about this policy, visit <a href="/contact" class="text-danger fw-semibold">StayFinder Support</a>.</p>
+                </section>
+            </div>
+        </article>
+    </div>
+</main>

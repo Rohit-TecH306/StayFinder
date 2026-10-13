@@ -1,0 +1,81 @@
+<% layout("/layouts/boilerplate") %>
+
+<main class="static-page py-4 py-md-5">
+    <div class="container" style="max-width: 58rem;">
+        <div class="mb-3">
+            <%- include("../includes/backButton.ejs", { fallback: "/listings", label: "Back to listings" }) %>
+        </div>
+
+        <header class="static-page-header mb-4 text-center">
+            <span class="badge bg-danger-subtle text-danger px-3 py-2 rounded-pill fw-semibold mb-2">Platform Agreement</span>
+            <h1 class="display-6 fw-bold text-dark">Terms of Use</h1>
+            <p class="text-muted fs-5 col-lg-8 mx-auto">
+                Please review these Terms of Use before utilizing the StayFinder platform as a guest or host.
+            </p>
+        </header>
+
+        <div class="card shadow-sm border-0 rounded-4 overflow-hidden mb-4">
+            <div class="card-body p-4 p-md-5 text-secondary">
+                <p class="small text-muted mb-4">Last Updated: October 2026</p>
+
+                <section class="mb-4">
+                    <h2 class="h5 fw-bold text-dark mb-2">1. Acceptance of Terms</h2>
+                    <p class="leading-relaxed">
+                        By accessing or using StayFinder, registering an account, booking accommodations, or publishing property listings, you agree to comply with and be bound by these Terms of Use.
+                    </p>
+                </section>
+
+                <hr class="my-4 text-muted opacity-25">
+
+                <section class="mb-4">
+                    <h2 class="h5 fw-bold text-dark mb-2">2. User Accounts</h2>
+                    <p class="leading-relaxed">
+                        You must provide accurate and complete registration information. You are responsible for safeguarding your login credentials and maintaining the confidentiality of your account password. You may configure a Public Display Name to represent yourself publicly across your listings.
+                    </p>
+                </section>
+
+                <hr class="my-4 text-muted opacity-25">
+
+                <section class="mb-4">
+                    <h2 class="h5 fw-bold text-dark mb-2">3. Listing and Hosting Guidelines</h2>
+                    <p class="leading-relaxed">
+                        Users who complete host onboarding agree to:
+                    </p>
+                    <ul class="mb-0 ps-3 leading-relaxed">
+                        <li>Provide truthful descriptions, accurate nightly rates, and representative photos for every listed stay.</li>
+                        <li>Ensure listing locations and categories accurately represent the property offered.</li>
+                        <li>Review and respond to guest reservation requests in a timely and responsible manner.</li>
+                        <li>Maintain private contact information and adhere to our user safety guidelines.</li>
+                    </ul>
+                </section>
+
+                <hr class="my-4 text-muted opacity-25">
+
+                <section class="mb-4">
+                    <h2 class="h5 fw-bold text-dark mb-2">4. Booking & Reservations</h2>
+                    <p class="leading-relaxed">
+                        Guests submit booking requests specifying check-in and check-out dates. A booking is subject to host confirmation through the hosting dashboard. Nightly rates and GST calculations displayed during browsing reflect the rates provided by the host.
+                    </p>
+                </section>
+
+                <hr class="my-4 text-muted opacity-25">
+
+                <section class="mb-4">
+                    <h2 class="h5 fw-bold text-dark mb-2">5. User Content and Reviews</h2>
+                    <p class="leading-relaxed">
+                        Users may leave ratings and reviews on listings. Content must be respectful, genuine, and free from abusive language, harassment, or commercial spam. StayFinder reserves the right to remove content that violates community standards.
+                    </p>
+                </section>
+
+                <hr class="my-4 text-muted opacity-25">
+
+                <section class="mb-0">
+                    <h2 class="h5 fw-bold text-dark mb-2">6. Disclaimers and Platform Role</h2>
+                    <p class="leading-relaxed mb-0">
+                        StayFinder acts as a marketplace platform enabling discovery and reservations between independent hosts and travelers. Property maintenance, safety, and check-in adherence remain the direct responsibility of the respective host and guest.
+                    </p>
+                </section>
+            </div>
+        </div>
+    </div>
+</main>
