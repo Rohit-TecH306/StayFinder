@@ -50,7 +50,7 @@
                         <% statusIcon = "fa-flag-checkered"; %>
                     <% } %>
                     <tr>
-                        <td>
+                        <td class="booking-col-property" data-label="Property">
                             <strong class="booking-table-property"><%= booking.listing ? booking.listing.title : "Listing no longer available" %></strong>
                             <% if (booking.listing) { %>
                                 <span class="booking-table-location"><i class="fa-solid fa-location-dot" aria-hidden="true"></i><%= booking.listing.location %>, <%= booking.listing.country %></span>
@@ -60,7 +60,7 @@
                         <td data-label="Check-out"><%= booking.checkOut.toLocaleDateString("en-IN") %></td>
                         <td data-label="Total"><strong>₹<%= (booking.totalAmountPaise / 100).toLocaleString("en-IN") %></strong></td>
                         <td data-label="Status"><span class="badge booking-status-badge booking-status-<%= booking.status %>"><i class="fa-solid <%= statusIcon %>" aria-hidden="true"></i><%= statusLabel %></span></td>
-                        <td data-label="Action" class="text-lg-end">
+                        <td data-label="Action" class="booking-col-action text-lg-end">
                             <a href="/bookings/<%= booking._id %>" class="btn booking-details-button"><span>View details</span><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
                         </td>
                     </tr>

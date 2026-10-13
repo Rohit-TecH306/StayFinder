@@ -44,13 +44,14 @@ listingImageInputs.forEach(function (input) {
   });
 });
 
-const searchForm = document.querySelector("[data-search-form]");
+const searchForms = document.querySelectorAll("[data-search-form]");
 
-if (searchForm) {
-  const searchInput = searchForm.querySelector("[name='q']");
-  const searchFeedback = searchForm.querySelector(".search-feedback");
+searchForms.forEach(function (form) {
+  const searchInput = form.querySelector("[name='q']");
+  const searchFeedback = form.querySelector(".search-feedback");
+  if (!searchInput) return;
 
-  searchForm.addEventListener("submit", function (event) {
+  form.addEventListener("submit", function (event) {
     const searchTerm = searchInput.value.trim();
     if (searchTerm) {
       searchInput.value = searchTerm;
@@ -71,7 +72,7 @@ if (searchForm) {
       if (searchFeedback) searchFeedback.textContent = "";
     }
   });
-}
+});
 
 const mapElement = document.querySelector("#map");
 

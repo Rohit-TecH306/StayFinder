@@ -29,8 +29,10 @@
                         <input type="email" id="email" class="form-control" value="<%= user.email %>" readonly aria-describedby="emailHelp">
                         <div id="emailHelp" class="form-text">Email changes are managed by account support.</div>
                     </div>
-                    <button type="submit" class="btn btn-danger rounded-pill px-4">Save Changes</button>
-                    <a href="/profile" class="btn btn-outline-secondary rounded-pill px-4 ms-2">Cancel</a>
+                    <div class="d-flex flex-wrap gap-2">
+                        <button type="submit" class="btn btn-danger rounded-pill px-4">Save Changes</button>
+                        <a href="/profile" class="btn btn-outline-secondary rounded-pill px-4">Cancel</a>
+                    </div>
                 </form>
             </div>
         </div>

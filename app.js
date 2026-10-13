@@ -151,7 +151,20 @@ app.use("/bookings", userBookingsRouter);
 app.use("/host/bookings", hostBookingsRouter);
 app.use("/", hostOnboardingRouter);
 app.use("/", userRouter);
-app.get("/", wrapAsync(listingController.index));
+app.get("/", wrapAsync((req, res) => listingController.index(req, res, 9)));
+
+app.get("/api/listings", wrapAsync(async (req, res) => {
+    const Listing = require("./models/listing.js");
+    const skip = Math.max(0, parseInt(req.query.skip, 10) || 0);
+    const limit = Math.min(18, Math.max(1, parseInt(req.query.limit, 10) || 9));
+    const listings = await Listing.find({})
+        .select("title price image location country")
+        .skip(skip)
+        .limit(limit + 1)   // fetch one extra to check if more remain
+        .lean();
+    const hasMore = listings.length > limit;
+    res.json({ listings: listings.slice(0, limit), hasMore });
+}));
 
 // The route which we have not creted or nothing for tha :-
 app.use((req, res, next) => {

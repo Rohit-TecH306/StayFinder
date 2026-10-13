@@ -9,17 +9,39 @@
                 </a>
             <% }) %>
              
-<div class="tax-toggle">
-    <div class="form-check-reverse form-switch">
-  <input class="form-check-input" type="checkbox" role="switch" id="switchCheckDefault">
-  <label class="form-check-label" for="switchCheckDefault">Display total after taxes</label>
-</div>
-</div>
+            <div class="tax-toggle">
+                <div class="form-check-reverse form-switch">
+                    <input class="form-check-input" type="checkbox" role="switch" id="switchCheckDefault">
+                    <label class="form-check-label" for="switchCheckDefault">Display total after taxes</label>
+                </div>
+            </div>
         </div>
+
+        <% if (q || selectedCategory) { %>
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-3 pt-2">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="text-muted small">
+                        <% if (q && selectedCategory) { %>
+                            Showing results for "<strong><%= q %></strong>" in <strong><%= selectedCategory %></strong>
+                        <% } else if (q) { %>
+                            Showing results for "<strong><%= q %></strong>"
+                        <% } else { %>
+                            Category: <strong><%= selectedCategory %></strong>
+                        <% } %>
+                    </span>
+                </div>
+                <a href="/listings" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                    <i class="fa-solid fa-xmark me-1" aria-hidden="true"></i>Clear filters
+                </a>
+            </div>
+        <% } %>
 
         <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mt-3">
             <% if (!allListings.length) { %>
-                <div class="col-12"><p class="text-muted">No listings match your search.</p></div>
+                <div class="col-12 py-5 text-center">
+                    <p class="text-muted fs-5 mb-3">No listings match your search.</p>
+                    <a href="/listings" class="btn btn-outline-danger rounded-pill px-4">Browse all listings</a>
+                </div>
             <% } %>
             <% for(let listing of allListings) { %>
 
@@ -55,17 +77,126 @@
 
                 <% } %>
         </div>
+
+        <% if (typeof hasMore !== "undefined" && hasMore) { %>
+            <div class="load-more-wrap text-center mt-5 mb-4" id="loadMoreWrap">
+                <button class="btn btn-view-more" id="loadMoreBtn"
+                    data-skip="9" data-limit="9">
+                    <span class="load-more-text">
+                        <i class="fa-solid fa-border-all me-2" aria-hidden="true"></i>Load More Listings
+                    </span>
+                    <span class="load-more-spinner d-none">
+                        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        Loading…
+                    </span>
+                </button>
+            </div>
+        <% } %>
+
 <script>
-    let taxSwitch = document.getElementById("switchCheckDefault");
-    taxSwitch.addEventListener("click",()=>{
-      let taxInfo = document.getElementsByClassName("tax-info");
-      for(info of taxInfo){
-        if(info.style.display != "inline"){
-            info.style.display = "inline";
-        }else{
-             info.style.display = "none";
-        }
-      }
-    });
+    /* ── Tax toggle ── */
+    const taxSwitch = document.getElementById("switchCheckDefault");
+    if (taxSwitch) {
+        taxSwitch.addEventListener("click", () => {
+            const taxInfoItems = document.getElementsByClassName("tax-info");
+            for (const info of taxInfoItems) {
+                info.style.display = info.style.display !== "inline" ? "inline" : "none";
+            }
+        });
+    }
+
+    /* ── Load More ── */
+    const loadMoreBtn  = document.getElementById("loadMoreBtn");
+    const loadMoreWrap = document.getElementById("loadMoreWrap");
+    const listingsGrid = document.querySelector(".row.row-cols-1.row-cols-md-2.row-cols-lg-3");
+
+    if (loadMoreBtn && listingsGrid) {
+        loadMoreBtn.addEventListener("click", async function () {
+            const skip  = parseInt(this.dataset.skip,  10);
+            const limit = parseInt(this.dataset.limit, 10);
+
+            /* show spinner */
+            const textEl    = this.querySelector(".load-more-text");
+            const spinnerEl = this.querySelector(".load-more-spinner");
+            this.disabled   = true;
+            textEl.classList.add("d-none");
+            spinnerEl.classList.remove("d-none");
+
+            try {
+                const res  = await fetch(`/api/listings?skip=${skip}&limit=${limit}`);
+                const data = await res.json();
+
+                /* build + append cards with a subtle fade-in */
+                const taxVisible = taxSwitch && taxSwitch.checked;
+                const fragment = document.createDocumentFragment();
+
+                data.listings.forEach(function (listing) {
+                    const priceFormatted = Number(listing.price).toLocaleString("en-IN");
+                    const col = document.createElement("div");
+                    col.className = "col load-more-card";
+
+                    const imgHtml = listing.image && listing.image.url
+                        ? `<img src="${listing.image.url}" class="card-img-top listing-card-image" alt="${escHtml(listing.title)}" loading="lazy" decoding="async">`
+                        : `<div class="card-img-top listing-image-fallback" role="img" aria-label="No image available for ${escHtml(listing.title)}">No image available</div>`;
+
+                    col.innerHTML = `
+                        <a href="/listings/${listing._id}" class="listing-link">
+                            <div class="card listing-card">
+                                ${imgHtml}
+                                <div class="card-img-overlay"></div>
+                                <div class="card-body">
+                                    <p class="card-text">
+                                        <b>${escHtml(listing.title)}</b><br>
+                                        &#8377;${priceFormatted} /night
+                                        <i class="tax-info" style="display:${taxVisible ? 'inline' : 'none'}"> +18% GST</i>
+                                    </p>
+                                </div>
+                            </div>
+                        </a>`;
+                    fragment.appendChild(col);
+                });
+
+                listingsGrid.appendChild(fragment);
+
+                /* animate in */
+                requestAnimationFrame(() => {
+                    listingsGrid.querySelectorAll(".load-more-card").forEach(function (card, i) {
+                        card.style.opacity    = "0";
+                        card.style.transform  = "translateY(16px)";
+                        card.style.transition = `opacity 260ms ease ${i * 50}ms, transform 260ms ease ${i * 50}ms`;
+                        requestAnimationFrame(() => {
+                            card.style.opacity   = "1";
+                            card.style.transform = "translateY(0)";
+                        });
+                        card.classList.remove("load-more-card");    // de-mark after animating
+                    });
+                });
+
+                /* update skip; hide button if nothing more */
+                this.dataset.skip = skip + data.listings.length;
+                if (!data.hasMore) {
+                    loadMoreWrap.remove();
+                } else {
+                    this.disabled = false;
+                    textEl.classList.remove("d-none");
+                    spinnerEl.classList.add("d-none");
+                }
+            } catch (err) {
+                console.error("Load more failed:", err);
+                this.disabled = false;
+                textEl.classList.remove("d-none");
+                spinnerEl.classList.add("d-none");
+            }
+        });
+    }
+
+    function escHtml(str) {
+        return String(str)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#39;");
+    }
 </script>
     </body>

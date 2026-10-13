@@ -20,7 +20,7 @@ const destroyIfUnreferenced = async (filename, listingId) => {
     if (!stillReferenced) await destroyImage(filename);
 };
 
-module.exports.index = async (req, res) => {
+module.exports.index = async (req, res, limit) => {
     const { q, category } = req.query;
     const normalizedQuery = typeof q === "string" ? q.trim() : "";
     const filters = {};
@@ -33,15 +33,23 @@ module.exports.index = async (req, res) => {
         filters.category = category;
     }
 
+    const pageLimit = (typeof limit === "number" && !normalizedQuery && !category) ? limit : null;
+
     const allListings = await Listing.find(filters)
         .select("title price image location country category")
         .lean();
 
+    const displayedListings = pageLimit ? allListings.slice(0, pageLimit) : allListings;
+    const hasMore = pageLimit ? allListings.length > pageLimit : false;
+    const isHomepage = pageLimit !== null;
+
     res.render("listings/index.ejs", {
-        allListings,
+        allListings: displayedListings,
         q: normalizedQuery,
         selectedCategory: category || "",
         listingCategories: activeListingCategories,
+        hasMore,
+        isHomepage,
     });
 }
 

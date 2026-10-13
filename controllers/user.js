@@ -93,7 +93,7 @@ module.exports.signUp = async (req, res, next) => {
                 { $set: { activeSessionId: req.sessionID } }
             );
             delete req.session.signupData;
-            req.flash("success", "Welcome to Wanderlust");
+            req.flash("success", "Welcome to StayFinder");
             res.redirect("/listings");
         });
     }
@@ -178,7 +178,7 @@ module.exports.login = async (req, res) => {
 
     delete req.session.loginUsername;
     delete req.session.redirectUrl;
-    req.flash("success", "Welcome back to Wanderlust!");
+    req.flash("success", "Welcome back to StayFinder!");
     let redirectUrl = res.locals.redirectUrl || "/listings";
     res.redirect(redirectUrl);
 }
