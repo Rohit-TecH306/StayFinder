@@ -3,7 +3,8 @@
     <body>
         <div id="filters">
             <% listingCategories.forEach(category => { %>
-                <a class="filter <%= selectedCategory === category.value ? 'active' : '' %>" href="/listings?category=<%= encodeURIComponent(category.value) %>">
+                <% const isActive = (selectedCategory === category.value || selectedCategory === category.label); %>
+                <a class="filter <%= isActive ? 'active' : '' %>" href="/listings?category=<%= encodeURIComponent(category.value) %><%= q ? '&q=' + encodeURIComponent(q) : '' %>">
                     <div><i class="fa-solid <%= category.icon %>"></i></div>
                     <p><%= category.label %></p>
                 </a>
@@ -81,7 +82,9 @@
         <% if (typeof hasMore !== "undefined" && hasMore) { %>
             <div class="load-more-wrap text-center mt-5 mb-4" id="loadMoreWrap">
                 <button class="btn btn-view-more" id="loadMoreBtn"
-                    data-skip="9" data-limit="9">
+                    data-skip="9" data-limit="9"
+                    data-q="<%= q || '' %>"
+                    data-category="<%= selectedCategory || '' %>">
                     <span class="load-more-text">
                         <i class="fa-solid fa-border-all me-2" aria-hidden="true"></i>Load More Listings
                     </span>
@@ -123,7 +126,12 @@
             spinnerEl.classList.remove("d-none");
 
             try {
-                const res  = await fetch(`/api/listings?skip=${skip}&limit=${limit}`);
+                const searchQ = this.dataset.q || "";
+                const searchCat = this.dataset.category || "";
+                const params = new URLSearchParams({ skip, limit });
+                if (searchQ) params.set("q", searchQ);
+                if (searchCat) params.set("category", searchCat);
+                const res  = await fetch(`/api/listings?${params.toString()}`);
                 const data = await res.json();
 
                 /* build + append cards with a subtle fade-in */

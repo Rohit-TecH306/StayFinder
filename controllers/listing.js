@@ -1,6 +1,6 @@
 const Listing = require("../models/listing.js");
 const { cloudinary } = require("../cloudConfig.js");
-const { activeListingCategories } = require("../utils/listingCategories.js");
+const { activeListingCategories, getCategoryFilterValues } = require("../utils/listingCategories.js");
 
 const destroyImage = async (filename) => {
     if (!filename) return;
@@ -30,10 +30,17 @@ module.exports.index = async (req, res, limit) => {
     }
 
     if (category) {
-        filters.category = category;
+        const matchingValues = getCategoryFilterValues(category);
+        if (matchingValues.length === 1) {
+            filters.category = { $regex: new RegExp(`^${matchingValues[0]}$`, "i") };
+        } else if (matchingValues.length > 1) {
+            filters.category = {
+                $in: matchingValues.map(v => new RegExp(`^${v}$`, "i"))
+            };
+        }
     }
 
-    const pageLimit = (typeof limit === "number" && !normalizedQuery && !category) ? limit : null;
+    const pageLimit = typeof limit === "number" ? limit : 9;
 
     const allListings = await Listing.find(filters)
         .select("title price image location country category")
@@ -41,7 +48,7 @@ module.exports.index = async (req, res, limit) => {
 
     const displayedListings = pageLimit ? allListings.slice(0, pageLimit) : allListings;
     const hasMore = pageLimit ? allListings.length > pageLimit : false;
-    const isHomepage = pageLimit !== null;
+    const isHomepage = Boolean(pageLimit && !normalizedQuery && !category);
 
     res.render("listings/index.ejs", {
         allListings: displayedListings,
@@ -121,7 +128,7 @@ module.exports.showListing = async (req, res) => {
         })
         .populate({
             path: "owner",
-            select: "username",
+            select: "username displayName hostFullName",
         })
         .lean();
 

@@ -155,9 +155,30 @@ app.get("/", wrapAsync((req, res) => listingController.index(req, res, 9)));
 
 app.get("/api/listings", wrapAsync(async (req, res) => {
     const Listing = require("./models/listing.js");
+    const { getCategoryFilterValues } = require("./utils/listingCategories.js");
+    const { q, category } = req.query;
     const skip = Math.max(0, parseInt(req.query.skip, 10) || 0);
     const limit = Math.min(18, Math.max(1, parseInt(req.query.limit, 10) || 9));
-    const listings = await Listing.find({})
+
+    const normalizedQuery = typeof q === "string" ? q.trim() : "";
+    const filters = {};
+
+    if (normalizedQuery) {
+        filters.$text = { $search: normalizedQuery };
+    }
+
+    if (category) {
+        const matchingValues = getCategoryFilterValues(category);
+        if (matchingValues.length === 1) {
+            filters.category = { $regex: new RegExp(`^${matchingValues[0]}$`, "i") };
+        } else if (matchingValues.length > 1) {
+            filters.category = {
+                $in: matchingValues.map(v => new RegExp(`^${v}$`, "i"))
+            };
+        }
+    }
+
+    const listings = await Listing.find(filters)
         .select("title price image location country")
         .skip(skip)
         .limit(limit + 1)   // fetch one extra to check if more remain
@@ -165,6 +186,31 @@ app.get("/api/listings", wrapAsync(async (req, res) => {
     const hasMore = listings.length > limit;
     res.json({ listings: listings.slice(0, limit), hasMore });
 }));
+
+// Static Informational Pages
+app.get("/about", (req, res) => {
+    res.render("pages/about.ejs");
+});
+
+app.get("/help", (req, res) => {
+    res.render("pages/help.ejs");
+});
+
+app.get("/faq", (req, res) => {
+    res.redirect("/help");
+});
+
+app.get("/contact", (req, res) => {
+    res.render("pages/contact.ejs");
+});
+
+app.get("/privacy", (req, res) => {
+    res.render("pages/privacy.ejs");
+});
+
+app.get("/terms", (req, res) => {
+    res.render("pages/terms.ejs");
+});
 
 // The route which we have not creted or nothing for tha :-
 app.use((req, res, next) => {
